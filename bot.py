@@ -13,7 +13,6 @@ from tgbot.config import load_config
 from tgbot import handlers
 from tgbot import filters
 from tgbot import middlewares
-from tgbot.services.database.base import Base
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ def register_all_handlers(dp):
 
 
 async def main():
-    config = load_config('../.env')
+    config = load_config('.env')
     logging_handlers = [logging.StreamHandler()]
     if config.bot.write_logs:
         if not os.path.exists('logs'):
@@ -53,16 +52,14 @@ async def main():
     bot_info = await bot.me
     logger.info(f'Bot: {bot_info.username} [{bot_info.mention}]')
 
-    storage = RedisStorage2(host='redis')
+    storage = RedisStorage2(host='localhost')
     dp = Dispatcher(bot, storage=storage)
-    redis = Redis(host='redis')
+    redis = Redis(host='localhost')
 
     engine = create_async_engine(
-        f'postgresql+asyncpg://{config.database.user}:{config.database.password}@postgres/{config.database.database}',
+        f'postgresql+asyncpg://{config.database.user}:{config.database.password}@127.0.0.1/{config.database.database}',
         future=True
     )
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
     async_sessionmaker = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession, future=True)
 
     bot['config'] = config

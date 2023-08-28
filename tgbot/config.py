@@ -31,7 +31,7 @@ class Config:
 
 def load_config(path: str = None):
     env = Env()
-    env.read_env(path)
+    env.read_env('.env')
 
     return Config(
         bot=TelegramBot(

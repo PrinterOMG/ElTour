@@ -7,8 +7,10 @@ name = "pypi"
 django = "*"
 environs = "*"
 psycopg = {extras = ["binary", "pool"], version = "*"}
+sqlalchemy = {extras = ["asyncio"], version = "*"}
 aiogram = "*"
 aioredis = "*"
+redis = "*"
 uvloop = "*"
 ujson = "*"
 asyncpg = "*"
