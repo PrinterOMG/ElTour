@@ -2,7 +2,9 @@ from aiogram import Dispatcher
 from aiogram.dispatcher.filters import Text
 from aiogram.types import Message
 
-from tgbot.misc import reply_commands
+from tgbot.keyboards import inline_keyboards
+from tgbot.misc import reply_commands, messages
+from tgbot.services.database.models import TelegramUser
 
 
 async def start_tour_pickup(message: Message):
@@ -10,7 +12,14 @@ async def start_tour_pickup(message: Message):
 
 
 async def send_account(message: Message):
-    await message.answer('В разработке!')
+    db = message.bot.get('database')
+    async with db() as session:
+        tg_user = await session.get(TelegramUser, message.from_id)
+
+    await message.answer(
+        messages.account.format(phone=tg_user.phone, name=tg_user.name, mailing=tg_user.pretty_mailing()),
+        reply_markup=inline_keyboards.account
+    )
 
 
 async def send_author_tours(message: Message):

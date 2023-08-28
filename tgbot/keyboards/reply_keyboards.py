@@ -15,3 +15,8 @@ main_menu.add(
     KeyboardButton(reply_commands.make_question),
     KeyboardButton(reply_commands.account)
 )
+
+cancel = ReplyKeyboardMarkup(resize_keyboard=True)
+cancel.add(
+    KeyboardButton(reply_commands.cancel)
+)
