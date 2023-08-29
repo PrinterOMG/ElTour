@@ -35,3 +35,21 @@ name_update = (
 name_updated = (
     'Имя обновлено на {new_name}!'
 )
+
+author_tour_intro = (
+    'Уже много лет мы организовываем авторские туры в разные страны мира.\n\n'
+    'Выберите направление'
+)
+
+author_tour_choose = (
+    'Направление - {country}\n\n'
+    'Выберите дату'
+)
+
+author_tour = (
+    'Авторский тур\n\n'
+    'Направление - {country}\n'
+    'Дата - {date}\n'
+    'Описание:\n'
+    '{description}'
+)
