@@ -119,3 +119,9 @@ tour_pickup_confirmation = (
     'Город вылета: {city}\n'
     'Дата вылета: {date}'
 )
+
+tour_pickup_hint = (
+    f'Нажмите кнопку "{reply_commands.back}" для возврата к предыдущему пункту\n'
+    f'Нажмите кнопку "{reply_commands.start_over}" для заполнения формы заново\n'
+    f'Нажмите кнопку "{reply_commands.cancel}" для отмены'
+)

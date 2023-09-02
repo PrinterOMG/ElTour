@@ -2,10 +2,13 @@ import datetime
 
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
 from aiogram.types import CallbackQuery, Message
 
+from tgbot.handlers.main_menu import start_tour_pickup
+from tgbot.handlers.other import cancel
 from tgbot.keyboards import inline_keyboards
-from tgbot.misc import states, messages, callbacks
+from tgbot.misc import states, messages, callbacks, reply_commands
 
 
 async def get_city(call: CallbackQuery, callback_data: dict, state: FSMContext):
@@ -179,7 +182,73 @@ async def get_nights_count(call: CallbackQuery, callback_data: dict, state: FSMC
     await call.answer()
 
 
+async def start_over(message: Message, state: FSMContext):
+    await state.reset_data()
+    await start_tour_pickup(message)
+
+
+async def back(message: Message, state: FSMContext):
+    current_state = await state.get_state()
+
+    if current_state not in (states.TourPickup.waiting_for_city, states.TourPickup.waiting_for_hotel_stars):
+        await states.TourPickup.previous()
+
+    state_data = await state.get_data()
+    match current_state:
+        case states.TourPickup.waiting_for_city.state:
+            await cancel(message, state)
+
+        case states.TourPickup.waiting_for_country.state:
+            await message.answer(messages.departure_city_input, reply_markup=inline_keyboards.cities)
+
+        case states.TourPickup.waiting_for_adult_count.state:
+            await message.answer(messages.tour_country_input.format(departure_city=state_data['city']),
+                                 reply_markup=inline_keyboards.countries)
+
+        case states.TourPickup.waiting_for_kids_count.state:
+            await message.answer(messages.adults_count_input.format(tour_country=state_data['country']),
+                                 reply_markup=inline_keyboards.adults_count)
+
+        case states.TourPickup.waiting_for_kids_age.state:
+            await state.update_data(kid_num=1, kid_ages=[])
+            await message.answer(messages.kids_count_input.format(adults_count=state_data['adults_count']),
+                                 reply_markup=inline_keyboards.kids_count)
+
+        case states.TourPickup.waiting_for_hotel_stars.state:
+            kids_count = int(state_data['kids_count'])
+            if kids_count == 0:
+                await states.TourPickup.waiting_for_kids_count.set()
+                await message.answer(messages.kids_count_input.format(adults_count=state_data['adults_count']),
+                                     reply_markup=inline_keyboards.kids_count)
+            else:
+                await states.TourPickup.waiting_for_kids_age.set()
+                await state.update_data(kid_num=1, kid_ages=[])
+                await message.answer(messages.kids_age_input.format(kids_count=kids_count, kid_num=1),
+                                     reply_markup=inline_keyboards.kid_age)
+
+        case states.TourPickup.waiting_for_food_type.state:
+            await message.answer(messages.hotel_stars_input.format(kids_count=state_data['kids_count']),
+                                 reply_markup=inline_keyboards.hotel_stars)
+
+        case states.TourPickup.waiting_for_date.state:
+            await message.answer(messages.food_type_input.format(hotel_stars='⭐' * int(state_data['stars'])),
+                                 reply_markup=inline_keyboards.food_type)
+
+        case states.TourPickup.waiting_for_nights_count.state:
+            cur_date = datetime.date.today()
+            await message.answer(messages.date_input.format(food_type=state_data['food_type']),
+                                 reply_markup=inline_keyboards.get_month_keyboard(cur_date.year, cur_date.month))
+
+        case states.TourPickup.finishing.state:
+            date = datetime.date.fromtimestamp(float(state_data['date']))
+            await message.answer(messages.nights_count_input.format(date=date.isoformat()),
+                                 reply_markup=inline_keyboards.nights_count)
+
+
 def register_tour_pickup(dp: Dispatcher):
+    dp.register_message_handler(back, Text(equals=reply_commands.back), state='*')
+    dp.register_message_handler(start_over, Text(equals=reply_commands.start_over), state='*')
+
     dp.register_callback_query_handler(get_city, callbacks.city_pickup.filter(), state=states.TourPickup.waiting_for_city)
     dp.register_message_handler(get_city_input, state=states.TourPickup.waiting_for_city)
 
