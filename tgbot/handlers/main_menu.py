@@ -3,12 +3,13 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import Message
 
 from tgbot.keyboards import inline_keyboards
-from tgbot.misc import reply_commands, messages
+from tgbot.misc import reply_commands, messages, states
 from tgbot.services.database.models import TelegramUser, Country
 
 
 async def start_tour_pickup(message: Message):
-    await message.answer('В разработке!')
+    await states.TourPickup.first()
+    await message.answer(messages.departure_city_input, reply_markup=inline_keyboards.cities)
 
 
 async def send_account(message: Message):
