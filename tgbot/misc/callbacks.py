@@ -29,3 +29,6 @@ food_type = CallbackData('food_type', 'type')
 calendar = CallbackData('calendar', 'action', 'value')  # ???
 
 nights_count = CallbackData('nights_count', 'count')
+
+# actions: 'confirm', 'update'
+tour_pickup = CallbackData('tour_pickup', 'action', 'payload')

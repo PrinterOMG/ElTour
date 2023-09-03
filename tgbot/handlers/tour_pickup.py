@@ -7,13 +7,19 @@ from aiogram.types import CallbackQuery, Message
 
 from tgbot.handlers.main_menu import start_tour_pickup
 from tgbot.handlers.other import cancel
-from tgbot.keyboards import inline_keyboards
+from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import states, messages, callbacks, reply_commands
 
 
 async def get_city(call: CallbackQuery, callback_data: dict, state: FSMContext):
     city = callback_data['name']
     await state.update_data(city=city)
+
+    state_data = await state.get_data()
+    if state_data.get('update'):
+        await show_confirm(call, state)
+        return
+
     await states.TourPickup.next()
 
     await call.message.edit_text(messages.tour_country_input.format(departure_city=city), reply_markup=inline_keyboards.countries)
@@ -23,6 +29,12 @@ async def get_city(call: CallbackQuery, callback_data: dict, state: FSMContext):
 async def get_city_input(message: Message, state: FSMContext):
     city = message.text
     await state.update_data(city=city)
+
+    state_data = await state.get_data()
+    if state_data.get('update'):
+        await show_confirm(message, state)
+        return
+
     await states.TourPickup.next()
 
     await message.answer(messages.tour_country_input.format(departure_city=city), reply_markup=inline_keyboards.countries)
@@ -31,6 +43,12 @@ async def get_city_input(message: Message, state: FSMContext):
 async def get_country(call: CallbackQuery, callback_data: dict, state: FSMContext):
     country = callback_data['name']
     await state.update_data(country=country)
+
+    state_data = await state.get_data()
+    if state_data.get('update'):
+        await show_confirm(call, state)
+        return
+
     await states.TourPickup.next()
 
     await call.message.edit_text(messages.adults_count_input.format(tour_country=country), reply_markup=inline_keyboards.adults_count)
@@ -40,6 +58,12 @@ async def get_country(call: CallbackQuery, callback_data: dict, state: FSMContex
 async def get_country_input(message: Message, state: FSMContext):
     country = message.text
     await state.update_data(country=country)
+
+    state_data = await state.get_data()
+    if state_data.get('update'):
+        await show_confirm(message, state)
+        return
+
     await states.TourPickup.next()
 
     await message.answer(messages.adults_count_input.format(tour_country=country), reply_markup=inline_keyboards.adults_count)
@@ -48,6 +72,12 @@ async def get_country_input(message: Message, state: FSMContext):
 async def get_adults_count(call: CallbackQuery, callback_data: dict, state: FSMContext):
     count = callback_data['count']
     await state.update_data(adults_count=count)
+
+    state_data = await state.get_data()
+    if state_data.get('update'):
+        await show_confirm(call, state)
+        return
+
     await states.TourPickup.next()
 
     await call.message.edit_text(messages.kids_count_input.format(adults_count=count), reply_markup=inline_keyboards.kids_count)
@@ -57,6 +87,12 @@ async def get_adults_count(call: CallbackQuery, callback_data: dict, state: FSMC
 async def get_adults_count_input(message: Message, state: FSMContext):
     count = message.text
     await state.update_data(adults_count=count)
+
+    state_data = await state.get_data()
+    if state_data.get('update'):
+        await show_confirm(message, state)
+        return
+
     await states.TourPickup.next()
 
     await message.answer(messages.kids_count_input.format(adults_count=count), reply_markup=inline_keyboards.kids_count)
@@ -67,6 +103,11 @@ async def get_kids_count(call: CallbackQuery, callback_data: dict, state: FSMCon
     await state.update_data(kids_count=count)
 
     if int(count) == 0:
+        state_data = await state.get_data()
+        if state_data.get('update'):
+            await show_confirm(call, state)
+            return
+
         await call.message.edit_text(messages.hotel_stars_input.format(kids_count=count), reply_markup=inline_keyboards.hotel_stars)
         await states.TourPickup.waiting_for_hotel_stars.set()
     else:
@@ -81,10 +122,15 @@ async def get_kids_count_input(message: Message, state: FSMContext):
     await state.update_data(kids_count=count)
 
     if int(count) == 0:
+        state_data = await state.get_data()
+        if state_data.get('update'):
+            await show_confirm(message, state)
+            return
+
         await message.answer(messages.hotel_stars_input.format(kids_count=count), reply_markup=inline_keyboards.hotel_stars)
         await states.TourPickup.waiting_for_hotel_stars.set()
     else:
-        await message.answer(messages.kids_age_input.format(kids_count=count, kid_num='1'), reply_markup=inline_keyboards.kid_age)
+        await message.answer(messages.kids_age_input.format(kids_count=count, kid_num=1), reply_markup=inline_keyboards.kid_age)
         await states.TourPickup.next()
 
 
@@ -101,6 +147,11 @@ async def get_kid_age(call: CallbackQuery, callback_data: dict, state: FSMContex
 
     kids_count = int(data['kids_count'])
     if kid_num == kids_count:
+        state_data = await state.get_data()
+        if state_data.get('update'):
+            await show_confirm(call, state)
+            return
+
         await call.message.edit_text(messages.hotel_stars_input.format(kids_count=kids_count), reply_markup=inline_keyboards.hotel_stars)
         await states.TourPickup.next()
     else:
@@ -112,6 +163,12 @@ async def get_kid_age(call: CallbackQuery, callback_data: dict, state: FSMContex
 async def get_hotel_stars(call: CallbackQuery, callback_data: dict, state: FSMContext):
     stars = int(callback_data['stars'])
     await state.update_data(hotel_stars=stars)
+
+    state_data = await state.get_data()
+    if state_data.get('update'):
+        await show_confirm(call, state)
+        return
+
     await states.TourPickup.next()
 
     await call.message.edit_text(messages.food_type_input.format(hotel_stars='⭐' * stars), reply_markup=inline_keyboards.food_type)
@@ -121,6 +178,12 @@ async def get_hotel_stars(call: CallbackQuery, callback_data: dict, state: FSMCo
 async def get_food_type(call: CallbackQuery, callback_data: dict, state: FSMContext):
     food_type = callback_data['type']
     await state.update_data(food_type=food_type)
+
+    state_data = await state.get_data()
+    if state_data.get('update'):
+        await show_confirm(call, state)
+        return
+
     await states.TourPickup.next()
 
     cur_date = datetime.date.today()
@@ -139,6 +202,12 @@ async def get_date(call: CallbackQuery, callback_data: dict, state: FSMContext):
         return
 
     await state.update_data(date=date)
+
+    state_data = await state.get_data()
+    if state_data.get('update'):
+        await show_confirm(call, state)
+        return
+
     await states.TourPickup.next()
 
     await call.message.edit_text(messages.nights_count_input.format(date=selected_date.isoformat()),
@@ -155,7 +224,12 @@ async def show_month(call: CallbackQuery, callback_data: dict):
 async def get_nights_count(call: CallbackQuery, callback_data: dict, state: FSMContext):
     count = callback_data['count']
     await state.update_data(nights_count=count)
-    await states.TourPickup.next()
+
+    await show_confirm(call, state)
+
+
+async def show_confirm(event: CallbackQuery | Message, state: FSMContext):
+    await states.TourPickup.finishing.set()
 
     state_data = await state.get_data()
     kids_age_str = ''
@@ -178,8 +252,12 @@ async def get_nights_count(call: CallbackQuery, callback_data: dict, state: FSMC
         city=state_data['city'],
         date=date.isoformat()
     )
-    await call.message.edit_text(text)
-    await call.answer()
+
+    if isinstance(event, CallbackQuery):
+        await event.message.edit_text(text, reply_markup=inline_keyboards.get_tour_pickup_confirm_keyboard(kids_count != 0))
+        await event.answer()
+    else:
+        await event.answer(text, reply_markup=inline_keyboards.get_tour_pickup_confirm_keyboard(kids_count != 0))
 
 
 async def start_over(message: Message, state: FSMContext):
@@ -245,6 +323,70 @@ async def back(message: Message, state: FSMContext):
                                  reply_markup=inline_keyboards.nights_count)
 
 
+async def update_data(call: CallbackQuery, callback_data: dict, state: FSMContext):
+    update_value = callback_data['payload']
+
+    await state.update_data(update=1)
+    state_data = await state.get_data()
+
+    match update_value:
+        case 'city':
+            await call.message.edit_text(messages.departure_city_input, reply_markup=inline_keyboards.cities)
+            await states.TourPickup.waiting_for_city.set()
+
+        case 'country':
+            await call.message.edit_text(messages.tour_country_input.format(departure_city=state_data['city']),
+                                         reply_markup=inline_keyboards.countries)
+            await states.TourPickup.waiting_for_country.set()
+
+        case 'adults_count':
+            await call.message.edit_text(messages.adults_count_input.format(tour_country=state_data['country']),
+                                         reply_markup=inline_keyboards.adults_count)
+            await states.TourPickup.waiting_for_adult_count.set()
+
+        case 'kids_count':
+            await state.update_data(kid_num=1, kid_ages=[])
+            await call.message.edit_text(messages.kids_count_input.format(adults_count=state_data['adults_count']),
+                                         reply_markup=inline_keyboards.kids_count)
+            await states.TourPickup.waiting_for_kids_count.set()
+
+        case 'kids_age':
+            await state.update_data(kid_num=1, kid_ages=[])
+            await call.message.edit_text(messages.kids_age_input.format(kids_count=state_data['kids_count'], kid_num=1),
+                                         reply_markup=inline_keyboards.kid_age)
+            await states.TourPickup.waiting_for_kids_age.set()
+
+        case 'hotel_stars':
+            await call.message.edit_text(messages.hotel_stars_input.format(kids_count=state_data['kids_count']),
+                                         reply_markup=inline_keyboards.hotel_stars)
+            await states.TourPickup.waiting_for_hotel_stars.set()
+
+        case 'food_type':
+            await call.message.edit_text(messages.hotel_stars_input.format(kids_count=state_data['kids_count']),
+                                         reply_markup=inline_keyboards.hotel_stars)
+            await states.TourPickup.waiting_for_food_type.set()
+
+        case 'date':
+            cur_date = datetime.date.today()
+            await call.message.edit_text(messages.date_input.format(food_type=state_data['food_type']),
+                                         reply_markup=inline_keyboards.get_month_keyboard(cur_date.year, cur_date.month))
+            await states.TourPickup.waiting_for_date.set()
+
+        case 'nights_count':
+            date = datetime.date.fromtimestamp(float(state_data['date']))
+            await call.message.edit_text(messages.nights_count_input.format(date=date.isoformat()),
+                                         reply_markup=inline_keyboards.nights_count)
+            await states.TourPickup.waiting_for_nights_count.set()
+
+    await call.answer()
+
+
+async def confirm_tour_pickup(call: CallbackQuery, state: FSMContext):
+    await state.finish()
+    await call.message.answer('В разработке!', reply_markup=reply_keyboards.main_menu)
+    await call.answer()
+
+
 def register_tour_pickup(dp: Dispatcher):
     dp.register_message_handler(back, Text(equals=reply_commands.back), state='*')
     dp.register_message_handler(start_over, Text(equals=reply_commands.start_over), state='*')
@@ -271,3 +413,6 @@ def register_tour_pickup(dp: Dispatcher):
     dp.register_callback_query_handler(show_month, callbacks.calendar.filter(action='show'), state=states.TourPickup.waiting_for_date)
 
     dp.register_callback_query_handler(get_nights_count, callbacks.nights_count.filter(), state=states.TourPickup.waiting_for_nights_count)
+
+    dp.register_callback_query_handler(confirm_tour_pickup, callbacks.tour_pickup.filter(action='confirm'), state=states.TourPickup.finishing)
+    dp.register_callback_query_handler(update_data, callbacks.tour_pickup.filter(action='update'), state=states.TourPickup.finishing)

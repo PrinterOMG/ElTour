@@ -87,6 +87,35 @@ nights_count.add(
 )
 
 
+def get_tour_pickup_confirm_keyboard(kids_age_button: bool):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+
+    keyboard.add(
+        InlineKeyboardButton('✅ Всё верно - отправить заявку', callback_data=callbacks.tour_pickup.new(action='confirm', payload=''))
+    )
+
+    keyboard.add(
+        InlineKeyboardButton('📝 Изменить город', callback_data=callbacks.tour_pickup.new(action='update', payload='city')),
+        InlineKeyboardButton('📝 Изменить страну', callback_data=callbacks.tour_pickup.new(action='update', payload='country')),
+        InlineKeyboardButton('📝 Изменить кол-во взрослых', callback_data=callbacks.tour_pickup.new(action='update', payload='adults_count')),
+        InlineKeyboardButton('📝 Изменить кол-во детей', callback_data=callbacks.tour_pickup.new(action='update', payload='kids_count'))
+    )
+
+    if kids_age_button:
+        keyboard.add(
+            InlineKeyboardButton('📝 Изменить возраст детей', callback_data=callbacks.tour_pickup.new(action='update', payload='kids_age'))
+        )
+
+    keyboard.add(
+        InlineKeyboardButton('📝 Изменить категорию отеля', callback_data=callbacks.tour_pickup.new(action='update', payload='hotel_stars')),
+        InlineKeyboardButton('📝 Изменить тип питания', callback_data=callbacks.tour_pickup.new(action='update', payload='food_type')),
+        InlineKeyboardButton('📝 Изменить дату', callback_data=callbacks.tour_pickup.new(action='update', payload='date')),
+        InlineKeyboardButton('📝 Изменить кол-во ночей', callback_data=callbacks.tour_pickup.new(action='update', payload='nights_count')),
+    )
+
+    return keyboard
+
+
 def get_month_keyboard(year: int, month: int):
     months = {
         1: 'Январь',
