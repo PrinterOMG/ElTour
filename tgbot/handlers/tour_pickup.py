@@ -9,6 +9,7 @@ from tgbot.handlers.main_menu import start_tour_pickup
 from tgbot.handlers.other import cancel
 from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import states, messages, callbacks, reply_commands
+from tgbot.services.database.models import TourPickup
 
 
 async def get_city(call: CallbackQuery, callback_data: dict, state: FSMContext):
@@ -382,9 +383,29 @@ async def update_data(call: CallbackQuery, callback_data: dict, state: FSMContex
 
 
 async def confirm_tour_pickup(call: CallbackQuery, state: FSMContext):
-    await state.finish()
-    await call.message.answer('В разработке!', reply_markup=reply_keyboards.main_menu)
+    db = call.bot.get('database')
+
+    state_data = await state.get_data()
+    async with db.begin() as session:
+        new_tour_pickup = TourPickup(
+            departure_city=state_data['city'],
+            country=state_data['country'],
+            adults_count=int(state_data['adults_count']),
+            kids_count=int(state_data['kids_count']),
+            kids_ages=';'.join(state_data.get('kid_ages', [])),
+            hotel_stars=int(state_data['hotel_stars']),
+            food_type=state_data['food_type'],
+            date=datetime.date.fromtimestamp(float(state_data['date'])),
+            night_count=int(state_data['nights_count']),
+            telegram_user_id=call.from_user.id
+        )
+        session.add(new_tour_pickup)
+
+    # TODO: отправка письма на почту менеджеру
+
+    await call.message.answer(messages.tour_pickup_complete, reply_markup=reply_keyboards.main_menu)
     await call.answer()
+    await state.finish()
 
 
 def register_tour_pickup(dp: Dispatcher):

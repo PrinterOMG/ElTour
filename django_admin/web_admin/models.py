@@ -55,3 +55,22 @@ class AuthorTour(models.Model):
         db_table = 'author_tour'
         verbose_name = 'Авторский тур'
         verbose_name_plural = 'Авторские туры'
+
+
+class TourPickup(models.Model):
+    departure_city = models.CharField(max_length=64, verbose_name='Город вылета')
+    country = models.CharField(max_length=64, verbose_name='Страна для путешествия')
+    adults_count = models.IntegerField(verbose_name='Кол-во взрослых')
+    kids_count = models.IntegerField(verbose_name='Кол-во детей')
+    kids_ages = models.CharField(max_length=255)
+    hotel_stars = models.IntegerField(verbose_name='Категория отеля')
+    food_type = models.CharField(max_length=32, verbose_name='Тип питания')
+    date = models.DateField(verbose_name='Дата вылета')
+    night_count = models.CharField(max_length=16, verbose_name='Кол-во ночей')
+
+    telegram_user = models.ForeignKey('TelegramUser', on_delete=models.CASCADE, verbose_name='Пользователь')
+
+    class Meta:
+        db_table = 'tour_pickup'
+        verbose_name = 'Заявка на тур'
+        verbose_name_plural = 'Заявки на тур'
