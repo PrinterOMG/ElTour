@@ -23,10 +23,19 @@ class Miscellaneous:
 
 
 @dataclass
+class Email:
+    sender: str
+    reveiver: str
+    user: str
+    password: str
+
+
+@dataclass
 class Config:
     bot: TelegramBot
     database: DatabaseConfig
     misc: Miscellaneous
+    email: Email
 
 
 def load_config(path: str = None):
@@ -46,5 +55,11 @@ def load_config(path: str = None):
         ),
         misc=Miscellaneous(
             uon_key=env.str('UON_KEY')
+        ),
+        email=Email(
+            sender=env.str('EMAIL_SENDER'),
+            reveiver=env.str('EMAIL_RECEIVER'),
+            user=env.str('EMAIL_USER'),
+            password=env.str('EMAIL_PASSWORD')
         )
     )

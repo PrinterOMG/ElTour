@@ -2,9 +2,11 @@ from aiogram import Dispatcher
 from aiogram.types import CallbackQuery
 from aiogram.utils import markdown
 
+from tgbot.config import Config
 from tgbot.keyboards import inline_keyboards
 from tgbot.misc import callbacks, messages
 from tgbot.services.database.models import AuthorTour, Country
+from tgbot.services.utils import send_email
 
 
 async def show_country_choose(call: CallbackQuery):
@@ -51,7 +53,18 @@ async def show_author_tour(call: CallbackQuery, callback_data: dict):
 
 
 async def send_request(call: CallbackQuery, callback_data: dict):
-    await call.answer('В разработке!')
+    config: Config = call.bot.get('config')
+    text = f'Новая заявка на авторский тур номер {callback_data["id"]}'
+    await send_email(
+        subject='Новая заявка',
+        body=text,
+        sender=config.email.sender,
+        receiver=config.email.reveiver,
+        user=config.email.user,
+        password=config.email.password
+    )
+
+    await call.answer()
 
 
 def register_author_tour(dp: Dispatcher):

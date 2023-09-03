@@ -8,12 +8,13 @@ django = "*"
 environs = "*"
 psycopg = {extras = ["binary", "pool"], version = "*"}
 sqlalchemy = {extras = ["asyncio"], version = "*"}
-aiogram = "*"
+aiogram = "<3.0"
 aioredis = "*"
 redis = "*"
 uvloop = "*"
 ujson = "*"
 asyncpg = "*"
+aiosmtplib = "*"
 
 [dev-packages]
 

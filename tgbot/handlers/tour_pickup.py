@@ -5,11 +5,13 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.types import CallbackQuery, Message
 
+from tgbot.config import Config
 from tgbot.handlers.main_menu import start_tour_pickup
 from tgbot.handlers.other import cancel
 from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import states, messages, callbacks, reply_commands
 from tgbot.services.database.models import TourPickup
+from tgbot.services.utils import send_email
 
 
 async def get_city(call: CallbackQuery, callback_data: dict, state: FSMContext):
@@ -229,10 +231,7 @@ async def get_nights_count(call: CallbackQuery, callback_data: dict, state: FSMC
     await show_confirm(call, state)
 
 
-async def show_confirm(event: CallbackQuery | Message, state: FSMContext):
-    await states.TourPickup.finishing.set()
-
-    state_data = await state.get_data()
+def get_tour_pickup_message(state_data):
     kids_age_str = ''
     kids_count = int(state_data['kids_count'])
     if kids_count != 0:
@@ -253,6 +252,16 @@ async def show_confirm(event: CallbackQuery | Message, state: FSMContext):
         city=state_data['city'],
         date=date.isoformat()
     )
+
+    return text
+
+
+async def show_confirm(event: CallbackQuery | Message, state: FSMContext):
+    await states.TourPickup.finishing.set()
+
+    state_data = await state.get_data()
+    kids_count = int(state_data['kids_count'])
+    text = get_tour_pickup_message(state_data)
 
     if isinstance(event, CallbackQuery):
         await event.message.edit_text(text, reply_markup=inline_keyboards.get_tour_pickup_confirm_keyboard(kids_count != 0))
@@ -396,12 +405,21 @@ async def confirm_tour_pickup(call: CallbackQuery, state: FSMContext):
             hotel_stars=int(state_data['hotel_stars']),
             food_type=state_data['food_type'],
             date=datetime.date.fromtimestamp(float(state_data['date'])),
-            night_count=int(state_data['nights_count']),
+            night_count=state_data['nights_count'],
             telegram_user_id=call.from_user.id
         )
         session.add(new_tour_pickup)
 
-    # TODO: отправка письма на почту менеджеру
+    config: Config = call.bot.get('config')
+    text = get_tour_pickup_message(state_data)
+    await send_email(
+        subject='Новая заявка',
+        body=text,
+        sender=config.email.sender,
+        receiver=config.email.reveiver,
+        user=config.email.user,
+        password=config.email.password
+    )
 
     await call.message.answer(messages.tour_pickup_complete, reply_markup=reply_keyboards.main_menu)
     await call.answer()
