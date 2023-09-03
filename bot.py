@@ -13,6 +13,7 @@ from tgbot.config import load_config
 from tgbot import handlers
 from tgbot import filters
 from tgbot import middlewares
+from tgbot.services.uon import UonAPI
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,8 @@ async def main():
     dp = Dispatcher(bot, storage=storage)
     redis = Redis(host='localhost')
 
+    uon = UonAPI(config.misc.uon_key)
+
     engine = create_async_engine(
         f'postgresql+asyncpg://{config.database.user}:{config.database.password}@127.0.0.1/{config.database.database}',
         future=True
@@ -65,6 +68,7 @@ async def main():
     bot['config'] = config
     bot['redis'] = redis
     bot['database'] = async_sessionmaker
+    bot['uon'] = uon
 
     register_all_middlewares(dp, config)
     register_all_filters(dp)

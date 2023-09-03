@@ -19,7 +19,7 @@ class TelegramBot:
 
 @dataclass
 class Miscellaneous:
-    other_params: str = ''
+    uon_key: str
 
 
 @dataclass
@@ -44,5 +44,7 @@ def load_config(path: str = None):
             user=env.str('POSTGRES_USER'),
             database=env.str('POSTGRES_DB')
         ),
-        misc=Miscellaneous()
+        misc=Miscellaneous(
+            uon_key=env.str('UON_KEY')
+        )
     )
