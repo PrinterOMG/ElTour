@@ -28,6 +28,9 @@ class Country(models.Model):
         verbose_name = 'Страна'
         verbose_name_plural = 'Страны'
 
+    def __str__(self):
+        return self.name
+
 
 class AuthorTour(models.Model):
     MONTHS = (
@@ -57,6 +60,23 @@ class AuthorTour(models.Model):
         verbose_name = 'Авторский тур'
         verbose_name_plural = 'Авторские туры'
 
+    def __str__(self):
+        months = {
+            'jan': 'Январь',
+            'feb': 'Февраль',
+            'mar': 'Март',
+            'apr': 'Апрель',
+            'may': 'Май',
+            'jun': 'Июнь',
+            'jul': 'Июль',
+            'aug': 'Август',
+            'sep': 'Сентябрь',
+            'nov': 'Ноябрь',
+            'dec': 'Декабрь'
+        }
+
+        return f'Тур - {self.country.name} | {months[self.month]} {self.year}'
+
 
 class TourPickup(models.Model):
     departure_city = models.CharField(max_length=64, verbose_name='Город вылета')
@@ -70,6 +90,19 @@ class TourPickup(models.Model):
     night_count = models.CharField(max_length=16, verbose_name='Кол-во ночей')
 
     telegram_user = models.ForeignKey('TelegramUser', on_delete=models.CASCADE, verbose_name='Пользователь')
+
+    def pretty_kids_ages(self):
+        if self.kids_ages:
+            kids_ages = self.kids_ages.split(';')
+            return '\n'.join(f'- Возраст {kid_num}-го ребенка: {age}' for kid_num, age in enumerate(kids_ages, start=1))
+
+        return ''
+
+    def pretty_stars(self):
+        return self.hotel_stars * '⭐'
+
+    pretty_kids_ages.short_description = 'Возраст детей'
+    pretty_stars.short_description = 'Категория отеля'
 
     class Meta:
         db_table = 'tour_pickup'

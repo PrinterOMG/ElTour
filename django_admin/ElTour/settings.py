@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'web_admin'
+    'web_admin',
+    'rangefilter'
 ]
 
 MIDDLEWARE = [
