@@ -2,6 +2,7 @@ from aiogram import Dispatcher
 from aiogram.dispatcher.filters import Text
 from aiogram.types import Message
 
+from tgbot.config import Config
 from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import reply_commands, messages, states
 from tgbot.services.database.models import TelegramUser, Country
@@ -35,7 +36,10 @@ async def send_author_tours(message: Message):
 
 
 async def start_question_input(message: Message):
-    await message.answer('В разработке!')
+    config: Config = message.bot.get('config')
+
+    await message.answer(messages.support,
+                         reply_markup=inline_keyboards.get_support_keyboard(config.misc.support_bot_link))
 
 
 def register_main_menu(dp: Dispatcher):

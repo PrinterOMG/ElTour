@@ -22,6 +22,7 @@ class Miscellaneous:
     uon_key: str
     salebot_key: str
     salebot_list_id: str
+    support_bot_link: str
 
 
 @dataclass

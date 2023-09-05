@@ -226,3 +226,13 @@ def get_author_tour_keyboard(author_tour: AuthorTour, landing_url: str):
     )
 
     return keyboard
+
+
+def get_support_keyboard(bot_link):
+    keyboard = InlineKeyboardMarkup()
+
+    keyboard.add(
+        InlineKeyboardButton('Написать менеджеру', url=bot_link)
+    )
+
+    return keyboard
