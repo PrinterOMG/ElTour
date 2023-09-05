@@ -13,6 +13,7 @@ from tgbot.config import load_config
 from tgbot import handlers
 from tgbot import filters
 from tgbot import middlewares
+from tgbot.services.salebot import SalebotAPI
 from tgbot.services.uon import UonAPI
 
 logger = logging.getLogger(__name__)
@@ -58,6 +59,7 @@ async def main():
     redis = Redis(host='localhost')
 
     uon = UonAPI(config.misc.uon_key)
+    salebot = SalebotAPI(config.misc.salebot_key)
 
     engine = create_async_engine(
         f'postgresql+asyncpg://{config.database.user}:{config.database.password}@127.0.0.1/{config.database.database}',
@@ -69,6 +71,7 @@ async def main():
     bot['redis'] = redis
     bot['database'] = async_sessionmaker
     bot['uon'] = uon
+    bot['salebot'] = salebot
 
     register_all_middlewares(dp, config)
     register_all_filters(dp)

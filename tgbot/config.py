@@ -20,6 +20,7 @@ class TelegramBot:
 @dataclass
 class Miscellaneous:
     uon_key: str
+    salebot_key: str
 
 
 @dataclass
@@ -54,7 +55,8 @@ def load_config(path: str = None):
             database=env.str('POSTGRES_DB')
         ),
         misc=Miscellaneous(
-            uon_key=env.str('UON_KEY')
+            uon_key=env.str('UON_KEY'),
+            salebot_key=env.str('SALEBOT_KEY')
         ),
         email=Email(
             sender=env.str('EMAIL_SENDER'),

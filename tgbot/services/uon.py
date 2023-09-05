@@ -18,7 +18,6 @@ class UonAPI:
                     return None
 
                 result = await response.json()
-                pprint(result)
                 if result.get('users'):
                     return result['users'][0]
                 return None
