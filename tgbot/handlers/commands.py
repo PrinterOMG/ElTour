@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from aiogram import Dispatcher
 from aiogram.types import Message
 
@@ -13,9 +15,6 @@ async def command_start(message: Message):
     async with db() as session:
         tg_user = await session.get(TelegramUser, message.from_id)
         if not tg_user:
-            salebot: SalebotAPI = message.bot.get('salebot')
-            bot_info = await message.bot.me
-            await salebot.load_client(bot_info.username, message.from_id)
             await message.answer(messages.phone_request, reply_markup=reply_keyboards.phone_request)
             await states.Registration.first()
         else:

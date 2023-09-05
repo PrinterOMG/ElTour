@@ -2,10 +2,12 @@ from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, Message
 
+from tgbot.config import Config
 from tgbot.handlers.main_menu import send_account
 from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import callbacks, messages, states
 from tgbot.services.database.models import TelegramUser
+from tgbot.services.salebot import SalebotAPI
 
 
 async def show_account(call: CallbackQuery):
@@ -14,7 +16,8 @@ async def show_account(call: CallbackQuery):
         tg_user = await session.get(TelegramUser, call.from_user.id)
 
     await call.message.edit_text(
-        messages.account.format(phone=tg_user.phone, name=tg_user.name, mailing=tg_user.pretty_mailing()),
+        messages.account.format(phone=tg_user.phone, name=tg_user.name, mailing=tg_user.pretty_mailing(),
+                                birthday=tg_user.birthday.isoformat() if tg_user.birthday else 'Не указан'),
         reply_markup=inline_keyboards.account
     )
     await call.answer()
@@ -25,6 +28,13 @@ async def switch_mailing(call: CallbackQuery):
     async with db.begin() as session:
         tg_user = await session.get(TelegramUser, call.from_user.id)
         tg_user.mailing_sub = not tg_user.mailing_sub
+
+    config: Config = call.bot.get('config')
+    salebot: SalebotAPI = call.bot.get('salebot')
+    if tg_user.mailing_sub:
+        await salebot.add_to_list(tg_user.salebot_id, config.misc.salebot_list_id)
+    else:
+        await salebot.remove_from_list(tg_user.salebot_id, config.misc.salebot_list_id)
 
     await show_account(call)
 

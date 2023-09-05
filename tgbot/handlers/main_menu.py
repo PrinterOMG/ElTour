@@ -19,7 +19,8 @@ async def send_account(message: Message):
         tg_user = await session.get(TelegramUser, message.from_id)
 
     await message.answer(
-        messages.account.format(phone=tg_user.phone, name=tg_user.name, mailing=tg_user.pretty_mailing()),
+        messages.account.format(phone=tg_user.phone, name=tg_user.name, mailing=tg_user.pretty_mailing(),
+                                birthday=tg_user.birthday.isoformat() if tg_user.birthday else 'Не указан'),
         reply_markup=inline_keyboards.account
     )
 

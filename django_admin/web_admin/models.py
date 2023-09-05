@@ -10,6 +10,7 @@ class TelegramUser(models.Model):
     mention = models.CharField(max_length=128, default='', verbose_name='Обращение в Telegram')
     mailing_sub = models.BooleanField(default=True, verbose_name='Подписка на рассылку')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата регистрации')
+    salebot_id = models.BigIntegerField(null=True)
 
     class Meta:
         db_table = 'telegram_user'

@@ -34,6 +34,7 @@ bad_birthday = (
 account = (
     'Личный кабинет\n\n'
     'Ваше имя: {name}\n'
+    'Ваш день рождения: {birthday}\n'
     'Ваш номер: {phone}\n\n'
     'Рассылка: {mailing}'
 )

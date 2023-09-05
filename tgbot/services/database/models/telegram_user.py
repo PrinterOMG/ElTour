@@ -17,6 +17,7 @@ class TelegramUser(Base):
     mention = Column(String(128))
     mailing_sub = Column(Boolean, default=True)
     created_at = Column(DateTime(), default=datetime.datetime.now())
+    salebot_id = Column(BigInteger)
 
     def pretty_mailing(self):
         return 'Включена' if self.mailing_sub else 'Выключена'

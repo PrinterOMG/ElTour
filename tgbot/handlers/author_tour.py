@@ -1,5 +1,5 @@
 from aiogram import Dispatcher
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InputFile
 from aiogram.utils import markdown
 
 from tgbot.config import Config
@@ -28,28 +28,35 @@ async def show_author_tours_dates(call: CallbackQuery, callback_data: dict):
 
     keyboard = inline_keyboards.get_autor_tours_dates_keyboard(author_tours)
 
-    await call.message.edit_text(messages.author_tour_choose.format(country=country.name),
-                                 reply_markup=keyboard)
+    await call.message.answer(messages.author_tour_choose.format(country=country.name), reply_markup=keyboard)
+    await call.message.delete()
     await call.answer()
 
 
 async def show_author_tour(call: CallbackQuery, callback_data: dict):
     tour_id = callback_data['id']
     db = call.bot.get('database')
-    async with db() as session:
+    async with db.begin() as session:
         author_tour: AuthorTour = await session.get(AuthorTour, int(tour_id))
 
-    text = messages.author_tour.format(
-        country=author_tour.country.name,
-        date=author_tour.pretty_date(),
-        description=author_tour.description
-    )
+        text = messages.author_tour.format(
+            country=author_tour.country.name,
+            date=author_tour.pretty_date(),
+            description=author_tour.description
+        )
+        keyboard = inline_keyboards.get_author_tour_keyboard(author_tour, author_tour.landing_url)
 
-    if author_tour.image_url:
-        text += markdown.hide_link(author_tour.image_url)
+        if author_tour.image_url:
+            redis = call.bot.get('redis')
+            photo_id = await redis.get(author_tour.image_url)
+            photo = photo_id.decode() if photo_id else InputFile.from_url(author_tour.image_url)
+            msg = await call.message.answer_photo(photo, reply_markup=keyboard)
+            author_tour.image_tg_id = msg.photo[-1].file_id
+            await call.message.delete()
+        else:
+            await call.message.edit_text(text, reply_markup=keyboard)
 
-    await call.message.edit_text(text, reply_markup=inline_keyboards.get_author_tour_keyboard(author_tour, author_tour.landing_url))
-    await call.answer()
+        await call.answer()
 
 
 async def send_request(call: CallbackQuery, callback_data: dict):

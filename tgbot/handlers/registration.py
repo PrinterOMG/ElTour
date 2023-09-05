@@ -1,4 +1,5 @@
 import datetime
+from pprint import pprint
 
 from aiogram import Dispatcher, Bot
 from aiogram.dispatcher import FSMContext
@@ -7,6 +8,7 @@ from aiogram.types import Message, ContentType, ReplyKeyboardRemove
 from tgbot.keyboards import reply_keyboards
 from tgbot.misc import states, messages
 from tgbot.services.database.models import TelegramUser
+from tgbot.services.salebot import SalebotAPI
 from tgbot.services.uon import UonAPI
 
 
@@ -25,6 +27,13 @@ async def get_phone(message: Message, state: FSMContext):
     if user:
         db = bot.get('database')
         birthday = user.get('u_birthday')
+
+        salebot: SalebotAPI = message.bot.get('salebot')
+        bot_info = await message.bot.me
+        clients = await salebot.load_client(bot_info.username, message.from_id)
+        clients = clients.get('items')
+        salebot_id = clients[0].get('id') if clients else None
+
         async with db.begin() as session:
             new_user = TelegramUser(
                 telegram_id=message.from_id,
@@ -32,9 +41,12 @@ async def get_phone(message: Message, state: FSMContext):
                 full_name=message.from_user.full_name,
                 mention=message.from_user.mention,
                 phone=phone,
-                birthday=datetime.date.fromisoformat(birthday) if birthday else None
+                birthday=datetime.date.fromisoformat(birthday) if birthday else None,
+                salebot_id=salebot_id
             )
             session.add(new_user)
+        await message.answer(messages.main_menu, reply_markup=reply_keyboards.main_menu)
+        await state.finish()
         return
 
     await state.update_data(phone=phone)
@@ -64,6 +76,12 @@ async def get_birthday(message: Message, state: FSMContext):
 
     bot = Bot.get_current()
 
+    salebot: SalebotAPI = message.bot.get('salebot')
+    bot_info = await message.bot.me
+    clients = await salebot.load_client(bot_info.username, message.from_id)
+    clients = clients.get('items')
+    salebot_id = clients[0].get('id') if clients else None
+
     db = bot.get('database')
     state_data = await state.get_data()
     async with db.begin() as session:
@@ -73,7 +91,8 @@ async def get_birthday(message: Message, state: FSMContext):
             full_name=message.from_user.full_name,
             mention=message.from_user.mention,
             phone=state_data['phone'],
-            birthday=birthday.isoformat()
+            birthday=birthday.isoformat(),
+            salebot_id=salebot_id
         )
         session.add(new_user)
 
@@ -86,4 +105,5 @@ async def get_birthday(message: Message, state: FSMContext):
 
 def register_registration(dp: Dispatcher):
     dp.register_message_handler(get_phone, state=states.Registration.waiting_for_phone, content_types=ContentType.CONTACT)
+    dp.register_message_handler(get_birthday, state=states.Registration.waiting_for_birthday)
     dp.register_message_handler(get_name, state=states.Registration.waiting_for_name)
