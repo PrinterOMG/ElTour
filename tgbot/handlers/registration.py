@@ -5,6 +5,7 @@ from aiogram import Dispatcher, Bot
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, ContentType, ReplyKeyboardRemove
 
+from tgbot.config import Config
 from tgbot.keyboards import reply_keyboards
 from tgbot.misc import states, messages
 from tgbot.services.database.models import TelegramUser
@@ -28,11 +29,14 @@ async def get_phone(message: Message, state: FSMContext):
         db = bot.get('database')
         birthday = user.get('u_birthday')
 
+        config: Config = message.bot.get('config')
         salebot: SalebotAPI = message.bot.get('salebot')
         bot_info = await message.bot.me
         clients = await salebot.load_client(bot_info.username, message.from_id)
         clients = clients.get('items')
         salebot_id = clients[0].get('id') if clients else None
+        if salebot_id:
+            await salebot.add_to_list(salebot_id, config.misc.salebot_list_id)
 
         async with db.begin() as session:
             new_user = TelegramUser(
@@ -76,11 +80,14 @@ async def get_birthday(message: Message, state: FSMContext):
 
     bot = Bot.get_current()
 
+    config: Config = message.bot.get('config')
     salebot: SalebotAPI = message.bot.get('salebot')
     bot_info = await message.bot.me
     clients = await salebot.load_client(bot_info.username, message.from_id)
     clients = clients.get('items')
     salebot_id = clients[0].get('id') if clients else None
+    if salebot_id:
+        await salebot.add_to_list(salebot_id, config.misc.salebot_list_id)
 
     db = bot.get('database')
     state_data = await state.get_data()
