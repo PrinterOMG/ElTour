@@ -64,13 +64,13 @@ async def send_request(call: CallbackQuery, callback_data: dict):
     db = call.bot.get('database')
     async with db() as session:
         tg_user: TelegramUser = await session.get(TelegramUser, call.from_user.id)
-        author_tour: AuthorTour = await session.get(TelegramUser, int(callback_data['id']))
+        author_tour: AuthorTour = await session.get(AuthorTour, int(callback_data['id']))
 
     text = (
         'Описание заявки\n\n'
         f'Имя: {tg_user.name}\n'
         f'Телефон: {tg_user.phone}\n'
-        f'Telegram: {tg_user.full_name} | {tg_user.mention or "(Нет обращения)"}'
+        f'Telegram: {tg_user.full_name} | {tg_user.mention or "(Нет обращения)"}\n\n'
         f'Страна: {author_tour.country.name}\n'
         f'Дата: {author_tour.pretty_date()}\n'
         f'Ссылка: {author_tour.landing_url}'
@@ -85,6 +85,8 @@ async def send_request(call: CallbackQuery, callback_data: dict):
         password=config.email.password
     )
 
+    await call.message.answer(messages.author_tour_request_sent)
+    await call.message.delete()
     await call.answer()
 
 
