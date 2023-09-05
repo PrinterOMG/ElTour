@@ -59,7 +59,8 @@ def load_config(path: str = None):
         misc=Miscellaneous(
             uon_key=env.str('UON_KEY'),
             salebot_key=env.str('SALEBOT_KEY'),
-            salebot_list_id=env.int('SALEBOT_LIST_ID')
+            salebot_list_id=env.int('SALEBOT_LIST_ID'),
+            support_bot_link=env.str('SUPPORT_BOT_LINK')
         ),
         email=Email(
             sender=env.str('EMAIL_SENDER'),
