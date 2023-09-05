@@ -5,7 +5,7 @@ from aiogram.utils import markdown
 from tgbot.config import Config
 from tgbot.keyboards import inline_keyboards
 from tgbot.misc import callbacks, messages
-from tgbot.services.database.models import AuthorTour, Country
+from tgbot.services.database.models import AuthorTour, Country, TelegramUser
 from tgbot.services.utils import send_email
 
 
@@ -61,9 +61,23 @@ async def show_author_tour(call: CallbackQuery, callback_data: dict):
 
 async def send_request(call: CallbackQuery, callback_data: dict):
     config: Config = call.bot.get('config')
-    text = f'Новая заявка на авторский тур номер {callback_data["id"]}'
+    db = call.bot.get('database')
+    async with db() as session:
+        tg_user: TelegramUser = await session.get(TelegramUser, call.from_user.id)
+        author_tour: AuthorTour = await session.get(TelegramUser, int(callback_data['id']))
+
+    text = (
+        'Описание заявки\n\n'
+        f'Имя: {tg_user.name}\n'
+        f'Телефон: {tg_user.phone}\n'
+        f'Telegram: {tg_user.full_name} | {tg_user.mention or "(Нет обращения)"}'
+        f'Страна: {author_tour.country.name}\n'
+        f'Дата: {author_tour.pretty_date()}\n'
+        f'Ссылка: {author_tour.landing_url}'
+    )
+
     await send_email(
-        subject='Новая заявка',
+        subject=f'Заявка на авторский тур в {author_tour.country.name} от {tg_user.name}',
         body=text,
         sender=config.email.sender,
         receiver=config.email.reveiver,

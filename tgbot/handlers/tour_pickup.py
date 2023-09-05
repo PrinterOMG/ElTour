@@ -10,7 +10,7 @@ from tgbot.handlers.main_menu import start_tour_pickup
 from tgbot.handlers.other import cancel
 from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import states, messages, callbacks, reply_commands
-from tgbot.services.database.models import TourPickup
+from tgbot.services.database.models import TourPickup, TelegramUser
 from tgbot.services.utils import send_email
 
 
@@ -396,6 +396,7 @@ async def confirm_tour_pickup(call: CallbackQuery, state: FSMContext):
 
     state_data = await state.get_data()
     async with db.begin() as session:
+        tg_user = await session.get(TelegramUser, call.from_user.id)
         new_tour_pickup = TourPickup(
             departure_city=state_data['city'],
             country=state_data['country'],
@@ -413,7 +414,7 @@ async def confirm_tour_pickup(call: CallbackQuery, state: FSMContext):
     config: Config = call.bot.get('config')
     text = get_tour_pickup_message(state_data)
     await send_email(
-        subject='Новая заявка',
+        subject=f'Заявка на подбор тура от {tg_user.name}',
         body=text,
         sender=config.email.sender,
         receiver=config.email.reveiver,
