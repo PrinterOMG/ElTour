@@ -98,7 +98,7 @@ async def get_birthday(message: Message, state: FSMContext):
             full_name=message.from_user.full_name,
             mention=message.from_user.mention,
             phone=state_data['phone'],
-            birthday=birthday.isoformat(),
+            birthday=birthday,
             salebot_id=salebot_id
         )
         session.add(new_user)
