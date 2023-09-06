@@ -86,31 +86,40 @@ nights_count.add(
     InlineKeyboardButton('14+', callback_data=callbacks.nights_count.new('14+')),
 )
 
+tour_pickup_confirm = InlineKeyboardMarkup(row_width=1)
+tour_pickup_confirm.add(
+    InlineKeyboardButton('✅ Всё верно - отправить заявку', callback_data=callbacks.tour_pickup.new(action='confirm', payload='')),
+    InlineKeyboardButton('📝 Изменить', callback_data=callbacks.tour_pickup.new(action='edit', payload=''))
+)
 
-def get_tour_pickup_confirm_keyboard(kids_age_button: bool):
+
+def get_edit_keyboard(kids_age_button: bool):
     keyboard = InlineKeyboardMarkup(row_width=1)
 
-    keyboard.add(
-        InlineKeyboardButton('✅ Всё верно - отправить заявку', callback_data=callbacks.tour_pickup.new(action='confirm', payload=''))
+    keyboard.row(
+        InlineKeyboardButton('📝 Дата', callback_data=callbacks.tour_pickup.new(action='update', payload='date')),
+        InlineKeyboardButton('📝 Город', callback_data=callbacks.tour_pickup.new(action='update', payload='city'))
+    )
+
+    keyboard.row(
+        InlineKeyboardButton('📝 Страна', callback_data=callbacks.tour_pickup.new(action='update', payload='country')),
+        InlineKeyboardButton('📝 Тип питания', callback_data=callbacks.tour_pickup.new(action='update', payload='food_type'))
     )
 
     keyboard.add(
-        InlineKeyboardButton('📝 Изменить город', callback_data=callbacks.tour_pickup.new(action='update', payload='city')),
-        InlineKeyboardButton('📝 Изменить страну', callback_data=callbacks.tour_pickup.new(action='update', payload='country')),
-        InlineKeyboardButton('📝 Изменить кол-во взрослых', callback_data=callbacks.tour_pickup.new(action='update', payload='adults_count')),
-        InlineKeyboardButton('📝 Изменить кол-во детей', callback_data=callbacks.tour_pickup.new(action='update', payload='kids_count'))
+        InlineKeyboardButton('📝 Кол-во взрослых', callback_data=callbacks.tour_pickup.new(action='update', payload='adults_count')),
+        InlineKeyboardButton('📝 Категория отеля', callback_data=callbacks.tour_pickup.new(action='update', payload='hotel_stars')),
+        InlineKeyboardButton('📝 Кол-во детей', callback_data=callbacks.tour_pickup.new(action='update', payload='kids_count'))
     )
 
     if kids_age_button:
         keyboard.add(
-            InlineKeyboardButton('📝 Изменить возраст детей', callback_data=callbacks.tour_pickup.new(action='update', payload='kids_age'))
+            InlineKeyboardButton('📝 Возраст детей', callback_data=callbacks.tour_pickup.new(action='update', payload='kids_age'))
         )
 
     keyboard.add(
-        InlineKeyboardButton('📝 Изменить категорию отеля', callback_data=callbacks.tour_pickup.new(action='update', payload='hotel_stars')),
-        InlineKeyboardButton('📝 Изменить тип питания', callback_data=callbacks.tour_pickup.new(action='update', payload='food_type')),
-        InlineKeyboardButton('📝 Изменить дату', callback_data=callbacks.tour_pickup.new(action='update', payload='date')),
-        InlineKeyboardButton('📝 Изменить кол-во ночей', callback_data=callbacks.tour_pickup.new(action='update', payload='nights_count')),
+        InlineKeyboardButton('📝 Кол-во ночей', callback_data=callbacks.tour_pickup.new(action='update', payload='nights_count')),
+        InlineKeyboardButton('Назад', callback_data=callbacks.tour_pickup.new(action='back', payload=''))
     )
 
     return keyboard

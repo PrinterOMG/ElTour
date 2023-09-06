@@ -260,14 +260,26 @@ async def show_confirm(event: CallbackQuery | Message, state: FSMContext):
     await states.TourPickup.finishing.set()
 
     state_data = await state.get_data()
-    kids_count = int(state_data['kids_count'])
     text = get_tour_pickup_message(state_data)
 
     if isinstance(event, CallbackQuery):
-        await event.message.edit_text(text, reply_markup=inline_keyboards.get_tour_pickup_confirm_keyboard(kids_count != 0))
+        await event.message.edit_text(text, reply_markup=inline_keyboards.tour_pickup_confirm)
         await event.answer()
     else:
-        await event.answer(text, reply_markup=inline_keyboards.get_tour_pickup_confirm_keyboard(kids_count != 0))
+        await event.answer(text, reply_markup=inline_keyboards.tour_pickup_confirm)
+
+
+async def show_edit_keyboard(call: CallbackQuery, state: FSMContext):
+    state_data = await state.get_data()
+    kids_count = int(state_data['kids_count'])
+
+    await call.message.edit_reply_markup(inline_keyboards.get_edit_keyboard(kids_count != 0))
+    await call.answer()
+
+
+async def show_confirm_keyboard(call: CallbackQuery):
+    await call.message.edit_reply_markup(inline_keyboards.tour_pickup_confirm)
+    await call.answer()
 
 
 async def start_over(message: Message, state: FSMContext):
@@ -461,5 +473,7 @@ def register_tour_pickup(dp: Dispatcher):
 
     dp.register_callback_query_handler(get_nights_count, callbacks.nights_count.filter(), state=states.TourPickup.waiting_for_nights_count)
 
+    dp.register_callback_query_handler(show_confirm_keyboard, callbacks.tour_pickup.filter(action='back'),state=states.TourPickup.finishing)
+    dp.register_callback_query_handler(show_edit_keyboard, callbacks.tour_pickup.filter(action='edit'), state=states.TourPickup.finishing)
     dp.register_callback_query_handler(confirm_tour_pickup, callbacks.tour_pickup.filter(action='confirm'), state=states.TourPickup.finishing)
     dp.register_callback_query_handler(update_data, callbacks.tour_pickup.filter(action='update'), state=states.TourPickup.finishing)
