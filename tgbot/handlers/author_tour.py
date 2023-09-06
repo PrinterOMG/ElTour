@@ -72,8 +72,7 @@ async def send_request(call: CallbackQuery, callback_data: dict):
         f'Телефон: {tg_user.phone}\n'
         f'Telegram: {tg_user.full_name} | {tg_user.mention or "(Нет обращения)"}\n\n'
         f'Страна: {author_tour.country.name}\n'
-        f'Дата: {author_tour.pretty_date()}\n'
-        f'Ссылка: {author_tour.landing_url}'
+        f'Дата: {author_tour.pretty_date()}'
     )
 
     await send_email(

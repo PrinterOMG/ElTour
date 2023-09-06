@@ -413,6 +413,13 @@ async def confirm_tour_pickup(call: CallbackQuery, state: FSMContext):
 
     config: Config = call.bot.get('config')
     text = get_tour_pickup_message(state_data)
+
+    text += (
+        f'\n\nИмя: {tg_user.name}\n'
+        f'Телефон: {tg_user.phone}\n'
+        f'Telegram: {tg_user.full_name} | {tg_user.mention or "(Нет обращения)"}'
+    )
+
     await send_email(
         subject=f'Заявка на подбор тура от {tg_user.name}',
         body=text,
