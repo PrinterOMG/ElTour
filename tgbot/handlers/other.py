@@ -24,5 +24,5 @@ async def pass_call(call: CallbackQuery):
 
 
 def register_other(dp: Dispatcher):
-    dp.register_message_handler(cancel, Text(equals=reply_commands.cancel), state='*')
+    dp.register_message_handler(cancel, Text(equals=(reply_commands.cancel, reply_commands.return_to_back_menu)), state='*')
     dp.register_callback_query_handler(pass_call, text='pass', state='*')
