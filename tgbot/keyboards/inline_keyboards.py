@@ -225,8 +225,12 @@ def get_autor_tours_dates_keyboard(author_tours: list[AuthorTour]):
 def get_author_tour_keyboard(author_tour: AuthorTour, landing_url: str):
     keyboard = InlineKeyboardMarkup(row_width=1)
 
+    if landing_url:
+        keyboard.add(
+            InlineKeyboardButton('Узнать подробнее', url=landing_url)
+        )
+
     keyboard.add(
-        InlineKeyboardButton('Узнать подробнее', url=landing_url),
         InlineKeyboardButton('Отправить заявку', callback_data=callbacks.author_tour.new(action='request', id=author_tour.id))
     )
 
