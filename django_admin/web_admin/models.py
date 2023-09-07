@@ -51,7 +51,8 @@ class AuthorTour(models.Model):
     country = models.ForeignKey('Country', on_delete=models.CASCADE, verbose_name='Страна')
     month = models.CharField(max_length=3, choices=MONTHS, verbose_name='Месяц')
     year = models.IntegerField(verbose_name='Год')
-    description = models.TextField(verbose_name='Описание')
+    description = models.TextField(verbose_name='Описание',
+                                   help_text='Если нет картинки - лимит 4096 символов. Если есть картинка - лимит 1024 символа. Следите за лимитами!')
     landing_url = models.CharField(max_length=255, default='', blank=True, verbose_name='Ссылка на лендинг')
     image_url = models.CharField(max_length=255, default='', blank=True, verbose_name='Ссылка на картинку')
     image_tg_id = models.CharField(max_length=255, default='', blank=True)

@@ -1,5 +1,5 @@
 from aiogram import Dispatcher
-from aiogram.types import CallbackQuery, InputFile
+from aiogram.types import CallbackQuery, InputFile, MediaGroup
 from aiogram.utils import markdown
 
 from tgbot.config import Config
@@ -47,11 +47,8 @@ async def show_author_tour(call: CallbackQuery, callback_data: dict):
         keyboard = inline_keyboards.get_author_tour_keyboard(author_tour, author_tour.landing_url)
 
         if author_tour.image_url:
-            redis = call.bot.get('redis')
-            photo_id = await redis.get(author_tour.image_url)
-            photo = photo_id.decode() if photo_id else InputFile.from_url(author_tour.image_url)
-            msg = await call.message.answer_photo(photo, reply_markup=keyboard)
-            author_tour.image_tg_id = msg.photo[-1].file_id
+            photo = InputFile.from_url(author_tour.image_url)
+            await call.message.answer_photo(photo, caption=text, reply_markup=keyboard)
             await call.message.delete()
         else:
             await call.message.edit_text(text, reply_markup=keyboard)
