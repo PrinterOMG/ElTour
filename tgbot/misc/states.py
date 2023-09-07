@@ -4,7 +4,6 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 class Registration(StatesGroup):
     waiting_for_phone = State()
     waiting_for_name = State()
-    waiting_for_birthday = State()
 
 
 class NameUpdate(StatesGroup):
@@ -21,5 +20,6 @@ class TourPickup(StatesGroup):
     waiting_for_food_type = State()
     waiting_for_date = State()
     waiting_for_nights_count = State()
+    waiting_for_birthday = State()
 
     finishing = State()

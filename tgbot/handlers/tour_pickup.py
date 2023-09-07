@@ -11,6 +11,7 @@ from tgbot.handlers.other import cancel
 from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import states, messages, callbacks, reply_commands
 from tgbot.services.database.models import TourPickup, TelegramUser
+from tgbot.services.uon import UonAPI
 from tgbot.services.utils import send_email
 
 
@@ -89,6 +90,11 @@ async def get_adults_count(call: CallbackQuery, callback_data: dict, state: FSMC
 
 async def get_adults_count_input(message: Message, state: FSMContext):
     count = message.text
+
+    if not count.isdigit():
+        await message.answer(messages.bad_adults_count)
+        return
+
     await state.update_data(adults_count=count)
 
     state_data = await state.get_data()
@@ -122,6 +128,11 @@ async def get_kids_count(call: CallbackQuery, callback_data: dict, state: FSMCon
 
 async def get_kids_count_input(message: Message, state: FSMContext):
     count = message.text
+
+    if not count.isdigit():
+        await message.answer(messages.bad_kids_count)
+        return
+
     await state.update_data(kids_count=count)
 
     if int(count) == 0:
@@ -228,7 +239,28 @@ async def get_nights_count(call: CallbackQuery, callback_data: dict, state: FSMC
     count = callback_data['count']
     await state.update_data(nights_count=count)
 
-    await show_confirm(call, state)
+    db = call.bot.get('database')
+    async with db() as session:
+        tg_user: TelegramUser = await session.get(TelegramUser, call.from_user.id)
+
+    if not tg_user.birthday:
+        await states.TourPickup.next()
+        await call.message.edit_text(messages.birthday_input)
+    else:
+        await show_confirm(call, state)
+
+
+async def get_birthday(message: Message, state: FSMContext):
+    birthday = message.text
+
+    try:
+        birthday = datetime.datetime.strptime(birthday, '%d.%m.%Y')
+    except ValueError:
+        await message.answer(messages.bad_birthday)
+        return
+
+    await state.update_data(birthday=birthday.timestamp())
+    await show_confirm(message, state)
 
 
 def get_tour_pickup_message(state_data):
@@ -252,6 +284,10 @@ def get_tour_pickup_message(state_data):
         city=state_data['city'],
         date=date.isoformat()
     )
+
+    birthday = state_data.get('birthday')
+    if birthday:
+        text += f'\n\nДата рождения: {datetime.date.fromtimestamp(float(birthday)).isoformat()}'
 
     return text
 
@@ -339,10 +375,19 @@ async def back(message: Message, state: FSMContext):
             await message.answer(messages.date_input.format(food_type=state_data['food_type']),
                                  reply_markup=inline_keyboards.get_month_keyboard(cur_date.year, cur_date.month))
 
-        case states.TourPickup.finishing.state:
+        case states.TourPickup.waiting_for_birthday.state:
             date = datetime.date.fromtimestamp(float(state_data['date']))
             await message.answer(messages.nights_count_input.format(date=date.isoformat()),
                                  reply_markup=inline_keyboards.nights_count)
+
+        case states.TourPickup.finishing.state:
+            if state_data.get('birthday'):
+                await message.answer(messages.birthday_input)
+
+            else:
+                date = datetime.date.fromtimestamp(float(state_data['date']))
+                await message.answer(messages.nights_count_input.format(date=date.isoformat()),
+                                     reply_markup=inline_keyboards.nights_count)
 
 
 async def update_data(call: CallbackQuery, callback_data: dict, state: FSMContext):
@@ -409,6 +454,11 @@ async def confirm_tour_pickup(call: CallbackQuery, state: FSMContext):
     state_data = await state.get_data()
     async with db.begin() as session:
         tg_user = await session.get(TelegramUser, call.from_user.id)
+        birthday = state_data.get('birthday')
+        if birthday:
+            birthday = datetime.date.fromtimestamp(float(birthday))
+            tg_user.birthday = birthday
+
         new_tour_pickup = TourPickup(
             departure_city=state_data['city'],
             country=state_data['country'],
@@ -445,6 +495,10 @@ async def confirm_tour_pickup(call: CallbackQuery, state: FSMContext):
     await call.answer()
     await state.finish()
 
+    if birthday:
+        uon: UonAPI = call.bot.get('uon')
+        await uon.update_birthday(tg_user.phone, birthday.isoformat())
+
 
 def register_tour_pickup(dp: Dispatcher):
     dp.register_message_handler(back, Text(equals=reply_commands.back), state='*')
@@ -472,6 +526,8 @@ def register_tour_pickup(dp: Dispatcher):
     dp.register_callback_query_handler(show_month, callbacks.calendar.filter(action='show'), state=states.TourPickup.waiting_for_date)
 
     dp.register_callback_query_handler(get_nights_count, callbacks.nights_count.filter(), state=states.TourPickup.waiting_for_nights_count)
+
+    dp.register_message_handler(get_birthday, state=states.TourPickup.waiting_for_birthday)
 
     dp.register_callback_query_handler(show_confirm_keyboard, callbacks.tour_pickup.filter(action='back'),state=states.TourPickup.finishing)
     dp.register_callback_query_handler(show_edit_keyboard, callbacks.tour_pickup.filter(action='edit'), state=states.TourPickup.finishing)

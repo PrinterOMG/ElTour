@@ -65,19 +65,6 @@ async def get_name(message: Message, state: FSMContext):
         await message.answer(messages.long_name)
         return
 
-    await state.update_data(name=name)
-    await message.answer(messages.birthday_input)
-    await states.Registration.next()
-
-
-async def get_birthday(message: Message, state: FSMContext):
-    birthday = message.text
-
-    try:
-        birthday = datetime.datetime.strptime(birthday, '%d.%m.%Y').date()
-    except ValueError:
-        await message.answer(messages.bad_birthday)
-
     bot = Bot.get_current()
 
     config: Config = message.bot.get('config')
@@ -94,17 +81,16 @@ async def get_birthday(message: Message, state: FSMContext):
     async with db.begin() as session:
         new_user = TelegramUser(
             telegram_id=message.from_id,
-            name=state_data['name'],
+            name=name,
             full_name=message.from_user.full_name,
             mention=message.from_user.mention,
             phone=state_data['phone'],
-            birthday=birthday,
             salebot_id=salebot_id
         )
         session.add(new_user)
 
     uon: UonAPI = bot.get('uon')
-    await uon.create_user(state_data['name'], state_data['phone'], birthday.isoformat())
+    await uon.create_user(name, state_data['phone'])
 
     await message.answer(messages.main_menu, reply_markup=reply_keyboards.main_menu)
     await state.finish()
@@ -112,5 +98,4 @@ async def get_birthday(message: Message, state: FSMContext):
 
 def register_registration(dp: Dispatcher):
     dp.register_message_handler(get_phone, state=states.Registration.waiting_for_phone, content_types=ContentType.CONTACT)
-    dp.register_message_handler(get_birthday, state=states.Registration.waiting_for_birthday)
     dp.register_message_handler(get_name, state=states.Registration.waiting_for_name)
