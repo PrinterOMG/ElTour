@@ -139,7 +139,7 @@ tour_pickup_confirmation = (
 tour_pickup_hint = (
     f'Нажмите кнопку "{reply_commands.back}" для возврата к предыдущему пункту\n'
     f'Нажмите кнопку "{reply_commands.start_over}" для заполнения формы заново\n'
-    f'Нажмите кнопку "{reply_commands.cancel}" для отмены'
+    f'Нажмите кнопку "{reply_commands.cancel}" для отмены заполнения формы и возврата в главное меню'
 )
 
 tour_pickup_complete = (

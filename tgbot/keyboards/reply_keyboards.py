@@ -25,5 +25,5 @@ tour_pickup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
 tour_pickup.add(
     KeyboardButton(reply_commands.back),
     KeyboardButton(reply_commands.start_over),
-    KeyboardButton(reply_commands.cancel)
+    KeyboardButton(reply_commands.return_to_back_menu)
 )
