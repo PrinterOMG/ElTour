@@ -48,8 +48,11 @@ async def show_author_tour(call: CallbackQuery, callback_data: dict):
 
         if author_tour.image_url:
             photo = InputFile.from_url(author_tour.image_url)
-            await call.message.answer_photo(photo, caption=text, reply_markup=keyboard)
-            await call.message.delete()
+            try:
+                await call.message.answer_photo(photo, caption=text, reply_markup=keyboard)
+                await call.message.delete()
+            except:
+                await call.message.edit_text(text, reply_markup=keyboard)
         else:
             await call.message.edit_text(text, reply_markup=keyboard)
 
