@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'web_admin',
-    'rangefilter'
+    'rangefilter',
+    'multiselectfield'
 ]
 
 MIDDLEWARE = [

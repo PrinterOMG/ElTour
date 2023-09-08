@@ -4,6 +4,7 @@ import datetime
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from tgbot.misc import callbacks
+from tgbot.misc.other import MONTHS
 from tgbot.services.database.models import Country, AuthorTour
 
 
@@ -210,10 +211,11 @@ def get_autor_tours_dates_keyboard(author_tours: list[AuthorTour]):
     keyboard = InlineKeyboardMarkup(row_width=1)
 
     for author_tour in author_tours:
-        btn_text = f'{author_tour.pretty_month()} {author_tour.year}'
-        keyboard.add(
-            InlineKeyboardButton(btn_text, callback_data=callbacks.author_tour.new(action='show', id=author_tour.id))
-        )
+        for month in author_tour.month.split(','):
+            btn_text = f'{MONTHS[month]} {author_tour.year}'
+            keyboard.add(
+                InlineKeyboardButton(btn_text, callback_data=callbacks.author_tour.new(action='show', id=author_tour.id, month=MONTHS[month]))
+            )
 
     keyboard.add(
         InlineKeyboardButton('Назад', callback_data='country_choose')
@@ -222,7 +224,7 @@ def get_autor_tours_dates_keyboard(author_tours: list[AuthorTour]):
     return keyboard
 
 
-def get_author_tour_keyboard(author_tour: AuthorTour, landing_url: str):
+def get_author_tour_keyboard(author_tour: AuthorTour, month, landing_url: str):
     keyboard = InlineKeyboardMarkup(row_width=1)
 
     if landing_url:
@@ -231,7 +233,7 @@ def get_author_tour_keyboard(author_tour: AuthorTour, landing_url: str):
         )
 
     keyboard.add(
-        InlineKeyboardButton('Отправить заявку', callback_data=callbacks.author_tour.new(action='request', id=author_tour.id))
+        InlineKeyboardButton('Отправить заявку', callback_data=callbacks.author_tour.new(action='request', id=author_tour.id, month=month))
     )
 
     keyboard.add(

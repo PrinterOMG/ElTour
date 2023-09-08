@@ -12,7 +12,7 @@ from tgbot.services.utils import send_email
 async def show_country_choose(call: CallbackQuery):
     db = call.bot.get('database')
     async with db() as session:
-        countries = await Country.get_all(session)
+        countries = await AuthorTour.get_countries(session)
 
     keyboard = inline_keyboards.get_countries_keyboard(countries)
     await call.message.edit_text(messages.author_tour_intro, reply_markup=keyboard)
@@ -35,16 +35,18 @@ async def show_author_tours_dates(call: CallbackQuery, callback_data: dict):
 
 async def show_author_tour(call: CallbackQuery, callback_data: dict):
     tour_id = callback_data['id']
+    month = callback_data['month']
+
     db = call.bot.get('database')
     async with db.begin() as session:
         author_tour: AuthorTour = await session.get(AuthorTour, int(tour_id))
 
         text = messages.author_tour.format(
             country=author_tour.country.name,
-            date=author_tour.pretty_date(),
+            date=f'{month} {author_tour.year}',
             description=author_tour.description
         )
-        keyboard = inline_keyboards.get_author_tour_keyboard(author_tour, author_tour.landing_url)
+        keyboard = inline_keyboards.get_author_tour_keyboard(author_tour, month, author_tour.landing_url)
 
         if author_tour.image_url:
             photo = InputFile.from_url(author_tour.image_url)
@@ -61,6 +63,7 @@ async def show_author_tour(call: CallbackQuery, callback_data: dict):
 
 async def send_request(call: CallbackQuery, callback_data: dict):
     config: Config = call.bot.get('config')
+    month = callback_data['month']
     db = call.bot.get('database')
     async with db() as session:
         tg_user: TelegramUser = await session.get(TelegramUser, call.from_user.id)
@@ -72,7 +75,7 @@ async def send_request(call: CallbackQuery, callback_data: dict):
         f'Телефон: {tg_user.phone}\n'
         f'Telegram: {tg_user.full_name} | {tg_user.mention or "(Нет обращения)"}\n\n'
         f'Страна: {author_tour.country.name}\n'
-        f'Дата: {author_tour.pretty_date()}'
+        f'Дата: {month} {author_tour.year}'
     )
 
     await send_email(

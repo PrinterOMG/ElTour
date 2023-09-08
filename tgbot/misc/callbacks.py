@@ -7,7 +7,7 @@ account = CallbackData('account', 'action')
 country = CallbackData('country', 'id')
 
 # action: 'show', 'request'
-author_tour = CallbackData('author_tour', 'action', 'id')
+author_tour = CallbackData('author_tour', 'action', 'id', 'month')
 
 city_pickup = CallbackData('city', 'name')
 

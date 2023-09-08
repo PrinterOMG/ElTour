@@ -17,6 +17,7 @@ asyncpg = "*"
 aiosmtplib = "*"
 l = "*"
 django-admin-rangefilter = "*"
+django-multiselectfield = "*"
 
 [dev-packages]
 

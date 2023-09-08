@@ -31,8 +31,8 @@ class CountryAdmin(admin.ModelAdmin):
 
 class AuthorTourAdmin(admin.ModelAdmin):
     fields = ('country', 'month', 'year', 'description', 'landing_url', 'image_url')
-    list_display = ('country_name', 'year', 'month')
-    list_filter = ('country__name', 'month', ('year', NumericRangeFilter))
+    list_display = ('country_name', 'year', 'months')
+    list_filter = ('country__name', ('year', NumericRangeFilter))
 
     def country_name(self, object):
         return object.country.name

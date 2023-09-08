@@ -1,4 +1,5 @@
 from django.db import models
+from multiselectfield import MultiSelectField
 
 
 class TelegramUser(models.Model):
@@ -34,7 +35,7 @@ class Country(models.Model):
 
 
 class AuthorTour(models.Model):
-    MONTHS = (
+    MONTHS_CHOICES = (
         ('jan', 'Январь'),
         ('feb', 'Февраль'),
         ('mar', 'Март'),
@@ -50,20 +51,15 @@ class AuthorTour(models.Model):
     )
 
     country = models.ForeignKey('Country', on_delete=models.CASCADE, verbose_name='Страна')
-    month = models.CharField(max_length=3, choices=MONTHS, verbose_name='Месяц')
+    month = MultiSelectField(max_length=255, choices=MONTHS_CHOICES, verbose_name='Месяц')
     year = models.IntegerField(verbose_name='Год')
     description = models.TextField(verbose_name='Описание',
                                    help_text='Если нет картинки - лимит 4096 символов. Если есть картинка - лимит 1024 символа. Следите за лимитами!')
     landing_url = models.CharField(max_length=255, default='', blank=True, verbose_name='Ссылка на лендинг')
-    image_url = models.CharField(max_length=255, default='', blank=True, verbose_name='Ссылка на картинку')
+    image_url = models.TextField(default='', blank=True, verbose_name='Ссылка на картинку')
     image_tg_id = models.CharField(max_length=255, default='', blank=True)
 
-    class Meta:
-        db_table = 'author_tour'
-        verbose_name = 'Авторский тур'
-        verbose_name_plural = 'Авторские туры'
-
-    def __str__(self):
+    def months(self):
         months = {
             'jan': 'Январь',
             'feb': 'Февраль',
@@ -79,7 +75,17 @@ class AuthorTour(models.Model):
             'dec': 'Декабрь'
         }
 
-        return f'Тур - {self.country.name} | {months[self.month]} {self.year}'
+        return ', '.join(months[m] for m in self.month)
+
+    months.short_description = 'Месяцы'
+
+    class Meta:
+        db_table = 'author_tour'
+        verbose_name = 'Авторский тур'
+        verbose_name_plural = 'Авторские туры'
+
+    def __str__(self):
+        return f'Тур - {self.country.name} | {self.months()} {self.year}'
 
 
 class TourPickup(models.Model):

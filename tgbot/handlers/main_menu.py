@@ -5,7 +5,7 @@ from aiogram.types import Message
 from tgbot.config import Config
 from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import reply_commands, messages, states
-from tgbot.services.database.models import TelegramUser, Country
+from tgbot.services.database.models import TelegramUser, Country, AuthorTour
 
 
 async def start_tour_pickup(message: Message):
@@ -29,7 +29,7 @@ async def send_account(message: Message):
 async def send_author_tours(message: Message):
     db = message.bot.get('database')
     async with db() as session:
-        countries = await Country.get_all(session)
+        countries = await AuthorTour.get_countries(session)
 
     keyboard = inline_keyboards.get_countries_keyboard(countries)
     await message.answer(messages.author_tour_intro, reply_markup=keyboard)
