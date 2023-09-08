@@ -73,6 +73,7 @@ class AuthorTour(models.Model):
             'jul': 'Июль',
             'aug': 'Август',
             'sep': 'Сентябрь',
+            'oct': 'Октябрь',
             'nov': 'Ноябрь',
             'dec': 'Декабрь'
         }

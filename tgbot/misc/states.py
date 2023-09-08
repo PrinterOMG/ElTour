@@ -20,6 +20,9 @@ class TourPickup(StatesGroup):
     waiting_for_food_type = State()
     waiting_for_date = State()
     waiting_for_nights_count = State()
-    waiting_for_birthday = State()
 
     finishing = State()
+
+
+class Birthday(StatesGroup):
+    waiting_for_birthday = State()
