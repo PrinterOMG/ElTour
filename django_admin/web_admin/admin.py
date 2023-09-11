@@ -29,10 +29,20 @@ class CountryAdmin(admin.ModelAdmin):
     pass
 
 
+def clone_author_tour(modeladmin, request, queryset):
+    for ad in queryset:
+        ad.pk = None
+        ad.save()
+
+
+clone_author_tour.short_description = 'Дублировать объект'
+
+
 class AuthorTourAdmin(admin.ModelAdmin):
     fields = ('country', 'month', 'year', 'description', 'landing_url', 'image_url')
     list_display = ('country_name', 'year', 'months')
     list_filter = ('country__name', ('year', NumericRangeFilter))
+    actions = [clone_author_tour]
 
     def country_name(self, object):
         return object.country.name
