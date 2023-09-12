@@ -39,7 +39,8 @@ clone_author_tour.short_description = 'Дублировать объект'
 
 
 class AuthorTourAdmin(admin.ModelAdmin):
-    fields = ('country', 'month', 'year', 'description', 'landing_url', 'image_url')
+    fields = ('country', 'month', 'year', 'description', 'symbols_count', 'landing_url', 'image_url')
+    readonly_fields = ('symbols_count', )
     list_display = ('country_name', 'year', 'months')
     list_filter = ('country__name', ('year', NumericRangeFilter))
     actions = [clone_author_tour]
@@ -47,7 +48,28 @@ class AuthorTourAdmin(admin.ModelAdmin):
     def country_name(self, object):
         return object.country.name
 
+    def symbols_count(self, obj: TourPickup):
+        template = (
+            'Авторский тур\n\n'
+            'Направление - {country}\n'
+            'Дата - {date}\n'
+            'Описание:\n'
+            '{description}'
+        )
+
+        months = obj.months().split(', ')
+        max_month = max(months, key=len)
+
+        result_str = template.format(
+            country=obj.country.name,
+            date=f'{max_month} {obj.year}',
+            description=obj.description
+        )
+
+        return len(result_str)
+
     country_name.short_description = 'Страна'
+    symbols_count.short_description = 'Кол-во символов'
 
 
 class TourPickupAdmin(admin.ModelAdmin):
