@@ -38,8 +38,12 @@ async def send_author_tours(message: Message):
 async def start_question_input(message: Message):
     config: Config = message.bot.get('config')
 
+    db = message.bot.get('database')
+    async with db() as session:
+        tg_user = await session.get(TelegramUser, message.from_id)
+
     await message.answer(messages.support,
-                         reply_markup=inline_keyboards.get_support_keyboard(config.misc.support_bot_link))
+                         reply_markup=inline_keyboards.get_support_keyboard(config.misc.support_bot_link, tg_user.phone))
 
 
 def register_main_menu(dp: Dispatcher):
