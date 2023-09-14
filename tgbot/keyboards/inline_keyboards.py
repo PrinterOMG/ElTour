@@ -245,11 +245,14 @@ def get_author_tour_keyboard(author_tour: AuthorTour, month, landing_url: str):
     return keyboard
 
 
-def get_support_keyboard(bot_link, phone):
+def get_support_keyboard(bot_link, phone: str | None):
     keyboard = InlineKeyboardMarkup()
 
+    if phone:
+        bot_link += f'?start={phone}'
+
     keyboard.add(
-        InlineKeyboardButton('Написать менеджеру', url=bot_link + f'?start={phone}')
+        InlineKeyboardButton('Написать менеджеру', url=bot_link)
     )
 
     return keyboard

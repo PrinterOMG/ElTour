@@ -37,13 +37,21 @@ async def send_author_tours(message: Message):
 
 async def start_question_input(message: Message):
     config: Config = message.bot.get('config')
+    redis = message.bot.get('redis')
 
-    db = message.bot.get('database')
-    async with db() as session:
-        tg_user = await session.get(TelegramUser, message.from_id)
+    cache_user = await redis.get(message.from_id)
+    if cache_user:
+        phone = None
+    else:
+        db = message.bot.get('database')
+        async with db() as session:
+            tg_user = await session.get(TelegramUser, message.from_id)
+
+        phone = tg_user.phone
+        await redis.set(message.from_id, '1')
 
     await message.answer(messages.support,
-                         reply_markup=inline_keyboards.get_support_keyboard(config.misc.support_bot_link, tg_user.phone))
+                         reply_markup=inline_keyboards.get_support_keyboard(config.misc.support_bot_link, phone))
 
 
 def register_main_menu(dp: Dispatcher):
