@@ -39,7 +39,7 @@ clone_author_tour.short_description = 'Дублировать объект'
 
 
 class AuthorTourAdmin(admin.ModelAdmin):
-    fields = ('country', 'month', 'year', 'description', 'symbols_count', 'landing_url', 'image_url')
+    fields = ('country', 'month', 'year', 'description', 'symbols_count', 'landing_url', 'image')
     readonly_fields = ('symbols_count', )
     list_display = ('country_name', 'year', 'months')
     list_filter = ('country__name', ('year', NumericRangeFilter))

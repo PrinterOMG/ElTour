@@ -18,6 +18,7 @@ aiosmtplib = "*"
 l = "*"
 django-admin-rangefilter = "*"
 django-multiselectfield = "*"
+pillow = "*"
 
 [dev-packages]
 

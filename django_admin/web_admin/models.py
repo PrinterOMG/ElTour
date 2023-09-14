@@ -56,8 +56,7 @@ class AuthorTour(models.Model):
     description = models.TextField(verbose_name='Описание',
                                    help_text='Если нет картинки - лимит 4096 символов. Если есть картинка - лимит 1024 символа. Следите за лимитами!')
     landing_url = models.CharField(max_length=255, default='', blank=True, verbose_name='Ссылка на лендинг')
-    image_url = models.TextField(default='', blank=True, verbose_name='Ссылка на картинку')
-    image_tg_id = models.CharField(max_length=255, default='', blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to='imgs/', verbose_name='Картинка')
 
     def months(self):
         months = {

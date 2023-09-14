@@ -48,8 +48,8 @@ async def show_author_tour(call: CallbackQuery, callback_data: dict):
         )
         keyboard = inline_keyboards.get_author_tour_keyboard(author_tour, month, author_tour.landing_url)
 
-        if author_tour.image_url:
-            photo = InputFile.from_url(author_tour.image_url)
+        if author_tour.image:
+            photo = InputFile(author_tour.image)
             try:
                 await call.message.answer_photo(photo, caption=text, reply_markup=keyboard)
                 await call.message.delete()

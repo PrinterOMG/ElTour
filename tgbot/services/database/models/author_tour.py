@@ -17,8 +17,7 @@ class AuthorTour(Base):
     year = Column(Integer)
     description = Column(Text)
     landing_url = Column(String(255))
-    image_url = Column(Text)
-    image_tg_id = Column(String(255))
+    image = Column(String(100))
 
     country = relationship('Country', lazy='selectin')
 
