@@ -24,7 +24,7 @@ class AuthorTour(Base):
 
     @classmethod
     async def get_by_country(cls, session, country_id):
-        stmt = select(AuthorTour).where(AuthorTour.country_id == int(country_id))
+        stmt = select(AuthorTour).where(AuthorTour.country_id == int(country_id)).order_by(AuthorTour.year)
         records = await session.execute(stmt)
 
         return records.scalars().all()

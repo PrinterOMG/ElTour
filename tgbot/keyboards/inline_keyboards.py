@@ -4,7 +4,7 @@ import datetime
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from tgbot.misc import callbacks
-from tgbot.misc.other import MONTHS
+from tgbot.misc.other import MONTHS, MONTHS_ENUM
 from tgbot.services.database.models import Country, AuthorTour
 
 
@@ -211,7 +211,9 @@ def get_autor_tours_dates_keyboard(author_tours: list[AuthorTour]):
     keyboard = InlineKeyboardMarkup(row_width=1)
 
     for author_tour in author_tours:
-        for month in author_tour.month.split(','):
+        months = author_tour.month.split(',')
+        months.sort(key=MONTHS_ENUM.get)
+        for month in months:
             btn_text = f'{MONTHS[month]} {author_tour.year}'
             keyboard.add(
                 InlineKeyboardButton(btn_text, callback_data=callbacks.author_tour.new(action='show', id=author_tour.id, month=MONTHS[month]))
