@@ -1,9 +1,9 @@
 import datetime
 
-from aiogram import Dispatcher
+from aiogram import Dispatcher, Bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, ContentTypes
 
 from tgbot.config import Config
 from tgbot.handlers.main_menu import start_tour_pickup
@@ -11,6 +11,7 @@ from tgbot.handlers.other import cancel
 from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import states, messages, callbacks, reply_commands
 from tgbot.services.database.models import TourPickup, TelegramUser
+from tgbot.services.salebot import SalebotAPI
 from tgbot.services.uon import UonAPI
 from tgbot.services.utils import send_email
 
@@ -239,7 +240,46 @@ async def get_nights_count(call: CallbackQuery, callback_data: dict, state: FSMC
     count = callback_data['count']
     await state.update_data(nights_count=count)
 
+    db = call.bot.get('database')
+    async with db() as session:
+        tg_user = await session.get(TelegramUser, call.from_user.id)
+        if not tg_user.phone:
+            await call.message.answer(messages.phone_request,
+                                      reply_markup=reply_keyboards.phone_request)
+            await states.TourPickup.waiting_for_phone.set()
+            await call.answer()
+            return
+
     await show_confirm(call, state)
+
+
+async def get_phone(message: Message, state: FSMContext):
+    contact = message.contact
+
+    if message.from_id != contact.user_id:
+        await message.answer(messages.not_your_phone, reply_markup=reply_keyboards.phone_request)
+        return
+
+    phone = contact.phone_number.replace('+', '')
+
+    bot = Bot.get_current()
+    uon = bot.get('uon')
+    db = bot.get('database')
+    user = await uon.get_user_by_phone(phone)
+    async with db.begin() as session:
+        tg_user = await session.get(TelegramUser, message.from_user.id)
+        if user:
+            birthday = user.get('u_birthday')
+
+            tg_user.birthday = datetime.date.fromisoformat(birthday) if birthday else None
+            tg_user.phone = phone
+
+        else:
+            uon: UonAPI = bot.get('uon')
+            await uon.create_user(tg_user.name, phone)
+
+    await message.answer('Спасибо', reply_markup=reply_keyboards.tour_pickup)
+    await show_confirm(message, state)
 
 
 def get_tour_pickup_message(state_data):
@@ -301,7 +341,8 @@ async def start_over(message: Message, state: FSMContext):
 async def back(message: Message, state: FSMContext):
     current_state = await state.get_state()
 
-    if current_state not in (states.TourPickup.waiting_for_city, states.TourPickup.waiting_for_hotel_stars):
+    if current_state not in (states.TourPickup.waiting_for_city, states.TourPickup.waiting_for_hotel_stars,
+                             states.TourPickup.finishing):
         await states.TourPickup.previous()
 
     state_data = await state.get_data()
@@ -351,6 +392,7 @@ async def back(message: Message, state: FSMContext):
                                  reply_markup=inline_keyboards.get_month_keyboard(cur_date.year, cur_date.month))
 
         case states.TourPickup.finishing.state:
+            await states.TourPickup.waiting_for_nights_count.set()
             date = datetime.date.fromtimestamp(float(state_data['date']))
             await message.answer(messages.nights_count_input.format(date=date.isoformat()),
                                  reply_markup=inline_keyboards.nights_count)
@@ -489,6 +531,8 @@ def register_tour_pickup(dp: Dispatcher):
     dp.register_callback_query_handler(show_month, callbacks.calendar.filter(action='show'), state=states.TourPickup.waiting_for_date)
 
     dp.register_callback_query_handler(get_nights_count, callbacks.nights_count.filter(), state=states.TourPickup.waiting_for_nights_count)
+
+    dp.register_message_handler(get_phone, state=states.TourPickup.waiting_for_phone, content_types=ContentTypes.CONTACT)
 
     dp.register_callback_query_handler(show_confirm_keyboard, callbacks.tour_pickup.filter(action='back'),state=states.TourPickup.finishing)
     dp.register_callback_query_handler(show_edit_keyboard, callbacks.tour_pickup.filter(action='edit'), state=states.TourPickup.finishing)

@@ -6,6 +6,7 @@ main_menu = (
 )
 
 phone_request = (
+    'Для отправки заявки нужен ваш номер телефона.\n'
     f'Нажмите кнопку "{reply_commands.phone_request}"'
 )
 

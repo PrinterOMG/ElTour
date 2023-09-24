@@ -4,7 +4,7 @@ from multiselectfield import MultiSelectField
 
 class TelegramUser(models.Model):
     telegram_id = models.BigIntegerField(primary_key=True, verbose_name='Telegram ID')
-    phone = models.CharField(max_length=16, verbose_name='Телефон')
+    phone = models.CharField(max_length=16, null=True, verbose_name='Телефон')
     name = models.CharField(max_length=32, verbose_name='Имя')
     birthday = models.DateField(null=True, verbose_name='День рождения')
     full_name = models.CharField(max_length=128, default='', verbose_name='Имя в Telegram')

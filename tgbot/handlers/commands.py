@@ -18,7 +18,7 @@ async def command_start(message: Message, state: FSMContext):
     async with db() as session:
         tg_user = await session.get(TelegramUser, message.from_id)
         if not tg_user:
-            await message.answer(messages.phone_request, reply_markup=reply_keyboards.phone_request)
+            await message.answer(messages.name_input)
             await states.Registration.first()
         else:
             await message.answer(messages.main_menu, reply_markup=reply_keyboards.main_menu)
