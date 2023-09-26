@@ -37,6 +37,9 @@ class UonAPI:
 
     async def update_birthday(self, phone, birthday):
         user = await self.get_user_by_phone(phone)
+        if not user:
+            return
+
         user_id = user.get('u_id')
 
         url = f'https://api.u-on.ru/{self.api_key}/user/update/{user_id}.{self._format}'
