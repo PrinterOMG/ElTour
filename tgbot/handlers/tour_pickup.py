@@ -268,12 +268,11 @@ async def get_phone(message: Message, state: FSMContext):
     user = await uon.get_user_by_phone(phone)
     async with db.begin() as session:
         tg_user = await session.get(TelegramUser, message.from_user.id)
+        tg_user.phone = phone
+
         if user:
             birthday = user.get('u_birthday')
-
             tg_user.birthday = datetime.date.fromisoformat(birthday) if birthday else None
-            tg_user.phone = phone
-
         else:
             uon: UonAPI = bot.get('uon')
             await uon.create_user(tg_user.name, phone)
