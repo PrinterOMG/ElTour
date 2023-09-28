@@ -24,5 +24,9 @@ class TourPickup(StatesGroup):
     finishing = State()
 
 
+class AuthorTour(StatesGroup):
+    waiting_for_phone = State()
+
+
 class Birthday(StatesGroup):
     waiting_for_birthday = State()

@@ -1,11 +1,15 @@
-from aiogram import Dispatcher
-from aiogram.types import CallbackQuery, InputFile, MediaGroup
+import datetime
+
+from aiogram import Dispatcher, Bot
+from aiogram.dispatcher import FSMContext
+from aiogram.types import CallbackQuery, InputFile, MediaGroup, Message
 from aiogram.utils import markdown
 
 from tgbot.config import Config
-from tgbot.keyboards import inline_keyboards
-from tgbot.misc import callbacks, messages
+from tgbot.keyboards import inline_keyboards, reply_keyboards
+from tgbot.misc import callbacks, messages, states
 from tgbot.services.database.models import AuthorTour, Country, TelegramUser
+from tgbot.services.uon import UonAPI
 from tgbot.services.utils import send_email
 
 
@@ -61,13 +65,40 @@ async def show_author_tour(call: CallbackQuery, callback_data: dict):
         await call.answer()
 
 
-async def send_request(call: CallbackQuery, callback_data: dict):
-    config: Config = call.bot.get('config')
-    month = callback_data['month']
-    db = call.bot.get('database')
+async def get_phone(message: Message, state: FSMContext):
+    contact = message.contact
+
+    if contact.user_id != message.from_user.id:
+        await message.answer(messages.not_your_phone)
+        return
+
+    phone = contact.phone_number.replace('+', '')
+
+    bot = Bot.get_current()
+    uon = bot.get('uon')
+    db = bot.get('database')
+    config = bot.get('config')
+    user = await uon.get_user_by_phone(phone)
+    async with db.begin() as session:
+        tg_user = await session.get(TelegramUser, message.from_user.id)
+        tg_user.phone = phone
+
+        if user:
+            birthday = user.get('u_birthday')
+            tg_user.birthday = datetime.date.fromisoformat(birthday) if birthday else None
+        else:
+            uon: UonAPI = bot.get('uon')
+            await uon.create_user(tg_user.name, phone)
+
+    state_data = await state.get_data()
+    await message.answer('Спасибо', reply_markup=reply_keyboards.main_menu)
+    await send_author_tour_email(tg_user, db, int(state_data['author_tour_id']), state_data['month'], config)
+    await state.finish()
+
+
+async def send_author_tour_email(tg_user: TelegramUser, db, author_tour_id: int, month, config: Config):
     async with db() as session:
-        tg_user: TelegramUser = await session.get(TelegramUser, call.from_user.id)
-        author_tour: AuthorTour = await session.get(AuthorTour, int(callback_data['id']))
+        author_tour: AuthorTour = await session.get(AuthorTour, author_tour_id)
 
     text = (
         'Описание заявки\n\n'
@@ -86,6 +117,21 @@ async def send_request(call: CallbackQuery, callback_data: dict):
         user=config.email.user,
         password=config.email.password
     )
+
+
+async def send_request(call: CallbackQuery, callback_data: dict, state: FSMContext):
+    config: Config = call.bot.get('config')
+    month = callback_data['month']
+    db = call.bot.get('database')
+    async with db() as session:
+        tg_user: TelegramUser = await session.get(TelegramUser, call.from_user.id)
+        if not tg_user.phone:
+            await states.AuthorTour.waiting_for_phone.set()
+            await call.message.answer(messages.phone_request)
+            await state.update_data(author_tour_id=callback_data['id'], month=month)
+            return
+
+    await send_author_tour_email(tg_user, db, int(callback_data['id']), month, config)
 
     await call.message.answer(messages.author_tour_request_sent)
     await call.message.delete()
