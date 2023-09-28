@@ -2,7 +2,7 @@ import datetime
 
 from aiogram import Dispatcher, Bot
 from aiogram.dispatcher import FSMContext
-from aiogram.types import CallbackQuery, InputFile, MediaGroup, Message
+from aiogram.types import CallbackQuery, InputFile, MediaGroup, Message, ContentType
 from aiogram.utils import markdown
 
 from tgbot.config import Config
@@ -91,8 +91,8 @@ async def get_phone(message: Message, state: FSMContext):
             await uon.create_user(tg_user.name, phone)
 
     state_data = await state.get_data()
-    await message.answer('Спасибо', reply_markup=reply_keyboards.main_menu)
     await send_author_tour_email(tg_user, db, int(state_data['author_tour_id']), state_data['month'], config)
+    await message.answer(messages.author_tour_request_sent, reply_markup=reply_keyboards.main_menu)
     await state.finish()
 
 
@@ -127,8 +127,9 @@ async def send_request(call: CallbackQuery, callback_data: dict, state: FSMConte
         tg_user: TelegramUser = await session.get(TelegramUser, call.from_user.id)
         if not tg_user.phone:
             await states.AuthorTour.waiting_for_phone.set()
-            await call.message.answer(messages.phone_request)
+            await call.message.answer(messages.phone_request, reply_markup=reply_keyboards.phone_request)
             await state.update_data(author_tour_id=callback_data['id'], month=month)
+            await call.answer()
             return
 
     await send_author_tour_email(tg_user, db, int(callback_data['id']), month, config)
@@ -143,3 +144,4 @@ def register_author_tour(dp: Dispatcher):
     dp.register_callback_query_handler(show_author_tours_dates, callbacks.country.filter())
     dp.register_callback_query_handler(show_author_tour, callbacks.author_tour.filter(action='show'))
     dp.register_callback_query_handler(send_request, callbacks.author_tour.filter(action='request'))
+    dp.register_message_handler(get_phone, state=states.AuthorTour.waiting_for_phone, content_types=[ContentType.CONTACT])
