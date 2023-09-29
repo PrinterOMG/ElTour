@@ -38,7 +38,8 @@ async def get_name(message: Message, state: FSMContext):
             name=name,
             full_name=message.from_user.full_name,
             mention=message.from_user.mention,
-            salebot_id=salebot_id
+            salebot_id=salebot_id,
+            created_at=datetime.datetime.now()
         )
         session.add(new_user)
 

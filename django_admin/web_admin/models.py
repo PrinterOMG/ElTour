@@ -87,6 +87,37 @@ class AuthorTour(models.Model):
         return f'Тур - {self.country.name} | {self.months()} {self.year}'
 
 
+class AuthorTourRequest(models.Model):
+    MONTHS_CHOICES = (
+        ('jan', 'Январь'),
+        ('feb', 'Февраль'),
+        ('mar', 'Март'),
+        ('apr', 'Апрель'),
+        ('may', 'Май'),
+        ('jun', 'Июнь'),
+        ('jul', 'Июль'),
+        ('aug', 'Август'),
+        ('sep', 'Сентябрь'),
+        ('oct', 'Октябрь'),
+        ('nov', 'Ноябрь'),
+        ('dec', 'Декабрь'),
+    )
+
+    user = models.ForeignKey('TelegramUser', on_delete=models.CASCADE, verbose_name='Пользователь')
+    author_tour = models.ForeignKey('AuthorTour', on_delete=models.CASCADE, verbose_name='Авторский тур')
+    month = models.CharField(max_length=10, choices=MONTHS_CHOICES, verbose_name='Месяц')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата заявки')
+
+
+    def __str__(self):
+        return f'Заявка на {self.author_tour}'
+
+    class Meta:
+        db_table = 'author_tour_request'
+        verbose_name = 'Заявка на авторский тур'
+        verbose_name_plural = 'Заявки на авторские тур'
+
+
 class TourPickup(models.Model):
     departure_city = models.CharField(max_length=64, verbose_name='Город вылета')
     country = models.CharField(max_length=64, verbose_name='Страна для путешествия')

@@ -8,7 +8,8 @@ from aiogram.utils import markdown
 from tgbot.config import Config
 from tgbot.keyboards import inline_keyboards, reply_keyboards
 from tgbot.misc import callbacks, messages, states
-from tgbot.services.database.models import AuthorTour, Country, TelegramUser
+from tgbot.misc.other import MONTHS
+from tgbot.services.database.models import AuthorTour, Country, TelegramUser, AuthorTourRequest
 from tgbot.services.uon import UonAPI
 from tgbot.services.utils import send_email
 
@@ -97,8 +98,16 @@ async def get_phone(message: Message, state: FSMContext):
 
 
 async def send_author_tour_email(tg_user: TelegramUser, db, author_tour_id: int, month, config: Config):
-    async with db() as session:
+    async with db.begin() as session:
         author_tour: AuthorTour = await session.get(AuthorTour, author_tour_id)
+        res = dict((v, k) for k, v in MONTHS.items())
+        new_request = AuthorTourRequest(
+            author_tour=author_tour,
+            telegram_user=tg_user,
+            created_at=datetime.datetime.now(),
+            month=res[month]
+        )
+        session.add(new_request)
 
     text = (
         'Описание заявки\n\n'

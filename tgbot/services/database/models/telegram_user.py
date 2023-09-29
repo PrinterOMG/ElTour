@@ -16,7 +16,7 @@ class TelegramUser(Base):
     full_name = Column(String(128))
     mention = Column(String(128))
     mailing_sub = Column(Boolean, default=True)
-    created_at = Column(DateTime(), default=datetime.datetime.now())
+    created_at = Column(DateTime())
     salebot_id = Column(BigInteger)
 
     def pretty_mailing(self):

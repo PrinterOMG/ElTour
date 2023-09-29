@@ -1,7 +1,7 @@
 from django.contrib import admin
 from rangefilter.filters import NumericRangeFilter, DateRangeFilter, DateTimeRangeFilter
 
-from web_admin.models import TelegramUser, Country, AuthorTour, TourPickup
+from web_admin.models import TelegramUser, Country, AuthorTour, TourPickup, AuthorTourRequest
 
 
 class TelegramUserAdmin(admin.ModelAdmin):
@@ -69,6 +69,22 @@ class AuthorTourAdmin(admin.ModelAdmin):
     symbols_count.short_description = 'Кол-во символов'
 
 
+class AuthorTourRequestAdmin(admin.ModelAdmin):
+    list_display = fields = ('user', 'author_tour', 'month', 'created_at')
+    list_filter = (
+        ('created_at', DateTimeRangeFilter),
+        'created_at',
+        'author_tour',
+        'user'
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 class TourPickupAdmin(admin.ModelAdmin):
     list_display = ('departure_city', 'country', 'adults_count', 'kids_count', 'pretty_stars', 'food_type', 'date',
                     'night_count', 'telegram_user')
@@ -92,3 +108,4 @@ admin.site.register(TelegramUser, TelegramUserAdmin)
 admin.site.register(Country, CountryAdmin)
 admin.site.register(AuthorTour, AuthorTourAdmin)
 admin.site.register(TourPickup, TourPickupAdmin)
+admin.site.register(AuthorTourRequest, AuthorTourRequestAdmin)
