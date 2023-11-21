@@ -5,9 +5,11 @@ import os
 
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.redis import RedisStorage2
+from aiogram.utils.exceptions import CantGetUpdates
 from aioredis import Redis
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from tgbot.config import load_config
 from tgbot import handlers
@@ -76,6 +78,14 @@ async def main():
     register_all_middlewares(dp, config)
     register_all_filters(dp)
     register_all_handlers(dp)
+
+    scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+    scheduler.add_job(
+        func=bot.delete_webhook,
+        trigger='interval',
+        minutes=10
+    )
+    scheduler.start()
 
     try:
         await dp.start_polling()
